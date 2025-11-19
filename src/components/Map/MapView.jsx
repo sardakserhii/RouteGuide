@@ -4,23 +4,45 @@ import {
   Marker,
   Popup,
   Polyline,
+  useMapEvents,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { useState, useEffect } from "react";
 
 import { fetchRouteData, fetchPoisData } from "../../api/routeApi";
+import { startIcon, endIcon, poiIcon } from "../../utils/mapIcons";
+import RoutePanel from "../RoutePanel/RoutePanel";
 
-const to = [48.7798583906272, 9.186483038222779];
-const from = [49.14355281960858, 9.211053078790103];
+// Component to handle map clicks
+function MapClickHandler({ selectionMode, onPointSelected }) {
+  useMapEvents({
+    click(e) {
+      if (selectionMode) {
+        const { lat, lng } = e.latlng;
+        onPointSelected([lat, lng]);
+      }
+    },
+  });
+  return null;
+}
 
 function MapView() {
-  const [route, setRoute] = useState([]); // [ [lat, lng], ... ]
+  const [startPoint, setStartPoint] = useState(null);
+  const [endPoint, setEndPoint] = useState(null);
+  const [selectionMode, setSelectionMode] = useState(null); // 'start', 'end', or null
+  const [route, setRoute] = useState([]);
   const [pois, setPois] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Calculate route when both points are selected
   useEffect(() => {
+    if (!startPoint || !endPoint) {
+      setRoute([]);
+      setPois([]);
+      return;
+    }
+
     const getRouteAndPois = async () => {
       setLoading(true);
       setError("");
@@ -28,7 +50,7 @@ function MapView() {
 
       try {
         // 1. Get Route
-        const latLngs = await fetchRouteData(from, to);
+        const latLngs = await fetchRouteData(startPoint, endPoint);
         setRoute(latLngs);
 
         // 2. Calculate Bounding Box for POIs
@@ -57,35 +79,98 @@ function MapView() {
     };
 
     getRouteAndPois();
-  }, []); // Run once on mount for now, since from/to are constants
+  }, [startPoint, endPoint]);
+
+  const handlePointSelected = (point) => {
+    if (selectionMode === "start") {
+      setStartPoint(point);
+      setSelectionMode(null);
+    } else if (selectionMode === "end") {
+      setEndPoint(point);
+      setSelectionMode(null);
+    }
+  };
+
+  const handleSelectStart = () => {
+    setSelectionMode("start");
+  };
+
+  const handleSelectEnd = () => {
+    setSelectionMode("end");
+  };
+
+  const handleClear = () => {
+    setStartPoint(null);
+    setEndPoint(null);
+    setSelectionMode(null);
+    setRoute([]);
+    setPois([]);
+    setError("");
+  };
+
+  // Default center (Germany)
+  const defaultCenter = [50.5, 10.5];
+  const center = startPoint || defaultCenter;
 
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen relative">
+      <RoutePanel
+        startPoint={startPoint}
+        endPoint={endPoint}
+        selectionMode={selectionMode}
+        onSelectStart={handleSelectStart}
+        onSelectEnd={handleSelectEnd}
+        onClear={handleClear}
+      />
+
       <MapContainer
-        center={from}
+        center={center}
         zoom={6}
         scrollWheelZoom={true}
         className="h-full w-full"
+        style={{ cursor: selectionMode ? "crosshair" : "grab" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <Marker position={from}>
-          <Popup>Старт</Popup>
-        </Marker>
+        <MapClickHandler
+          selectionMode={selectionMode}
+          onPointSelected={handlePointSelected}
+        />
 
-        <Marker position={to}>
-          <Popup>Финиш</Popup>
-        </Marker>
+        {startPoint && (
+          <Marker position={startPoint} icon={startIcon}>
+            <Popup>
+              📍 Начальная точка
+              <br />
+              <small>
+                {startPoint[0].toFixed(5)}, {startPoint[1].toFixed(5)}
+              </small>
+            </Popup>
+          </Marker>
+        )}
 
-        {route.length > 0 && <Polyline positions={route} />}
+        {endPoint && (
+          <Marker position={endPoint} icon={endIcon}>
+            <Popup>
+              🏁 Конечная точка
+              <br />
+              <small>
+                {endPoint[0].toFixed(5)}, {endPoint[1].toFixed(5)}
+              </small>
+            </Popup>
+          </Marker>
+        )}
+
+        {route.length > 0 && (
+          <Polyline positions={route} color="#2563eb" weight={4} />
+        )}
 
         {pois.map((poi) => {
-          console.log("🗺️ Rendering POI:", poi.name, "at", poi.lat, poi.lon);
           return (
-            <Marker key={poi.id} position={[poi.lat, poi.lon]}>
+            <Marker key={poi.id} position={[poi.lat, poi.lon]} icon={poiIcon}>
               <Popup>
                 <strong>{poi.name}</strong>
                 <br />
@@ -95,14 +180,18 @@ function MapView() {
           );
         })}
       </MapContainer>
+
       {loading && (
-        <div className="absolute top-4 left-16 z-[1000] bg-white p-2 rounded shadow">
-          Загрузка...
+        <div className="absolute top-4 right-4 z-[1000] bg-white p-3 rounded-lg shadow-lg">
+          <div className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            <span>Загрузка маршрута...</span>
+          </div>
         </div>
       )}
       {error && (
-        <div className="absolute top-4 left-16 z-[1000] bg-red-100 p-2 rounded shadow text-red-600">
-          {error}
+        <div className="absolute top-4 right-4 z-[1000] bg-red-100 p-3 rounded-lg shadow-lg text-red-600">
+          ⚠️ {error}
         </div>
       )}
     </div>
