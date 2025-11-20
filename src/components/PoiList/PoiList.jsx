@@ -57,7 +57,16 @@ const formatAddress = (tags = {}) => {
   return parts.join(", ");
 };
 
-const PoiList = ({ pois, startPoint, onVisibleChange = () => {} }) => {
+const PoiList = ({
+  pois,
+  startPoint,
+  onVisibleChange = () => {},
+  selectedPoiIds = [],
+  onTogglePoiSelection = () => {},
+  onSelectVisible = () => {},
+  onClearSelection = () => {},
+  onExportRoute = () => {},
+}) => {
   const enrichedPois = useMemo(() => {
     if (!startPoint || !pois || pois.length === 0) return [];
 
@@ -105,6 +114,8 @@ const PoiList = ({ pois, startPoint, onVisibleChange = () => {} }) => {
   }, [visiblePois, onVisibleChange]);
 
   if (!pois || pois.length === 0) return null;
+
+  const selectedCount = selectedPoiIds.length;
 
   return (
     <div className="absolute top-5 right-5 bottom-5 w-[420px] max-w-[430px] bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col z-[1000] border border-gray-100">
@@ -154,6 +165,38 @@ const PoiList = ({ pois, startPoint, onVisibleChange = () => {} }) => {
             })}
           </div>
         )}
+
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          <span className="text-xs text-gray-600">
+            Selected for export:{" "}
+            <span className="font-semibold text-gray-900">{selectedCount}</span>
+            {selectedCount > 23 && (
+              <span className="text-[11px] text-amber-700 ml-1">
+                (only first 23 will be sent)
+              </span>
+            )}
+          </span>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <button
+              onClick={() => onSelectVisible(visiblePois.map((p) => p.id))}
+              className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Select shown
+            </button>
+            <button
+              onClick={onClearSelection}
+              className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={onExportRoute}
+              className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Open in Google Maps
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="overflow-y-auto flex-1 p-4 space-y-4 bg-gray-50 custom-scrollbar">
@@ -216,6 +259,15 @@ const PoiList = ({ pois, startPoint, onVisibleChange = () => {} }) => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
+                      <label className="flex items-center gap-1 text-[11px] text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={selectedPoiIds.includes(poi.id)}
+                          onChange={() => onTogglePoiSelection(poi.id)}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        Select
+                      </label>
                       {poi.isTopPick && (
                         <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
                           AI TOP

@@ -81,6 +81,12 @@ routeguide/
 
 MIT
 
+## Export to Google Maps
+
+- Build a route, use the POI list checkboxes to choose stops, and click **Open in Google Maps**.
+- The exported link opens origin -> selected POIs (up to 23) -> destination in a new tab.
+- Google Maps limits routes to 25 total points (origin + destination + 23 waypoints); extra selections are ignored.
+
 ---
 
 # 🗺️ RouteGuide

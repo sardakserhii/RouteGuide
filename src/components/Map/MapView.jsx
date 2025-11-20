@@ -14,6 +14,7 @@ import { startIcon, endIcon, poiIcon } from "../../utils/mapIcons";
 import RoutePanel from "../RoutePanel/RoutePanel";
 import PoiFilter from "../PoiFilter/PoiFilter";
 import PoiList from "../PoiList/PoiList";
+import { buildGoogleMapsDirectionsUrl } from "../../utils/buildGoogleMapsDirectionsUrl";
 
 // Component to handle map clicks
 function MapClickHandler({ selectionMode, onPointSelected }) {
@@ -37,6 +38,7 @@ function MapView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [visiblePois, setVisiblePois] = useState([]);
+  const [selectedPoiIds, setSelectedPoiIds] = useState([]);
 
   // Filter state
   const [selectedCategories, setSelectedCategories] = useState([
@@ -120,6 +122,7 @@ function MapView() {
           // Fallback for old API response format if any
           setPois(Array.isArray(data) ? data : []);
         }
+        setSelectedPoiIds([]);
       } catch (e) {
         console.error(e);
         setError("Unable to load places right now. Please try again.");
@@ -139,6 +142,7 @@ function MapView() {
   useEffect(() => {
     if (pois.length === 0) {
       setVisiblePois([]);
+      setSelectedPoiIds([]);
     }
   }, [pois]);
 
@@ -167,6 +171,7 @@ function MapView() {
     setRoute([]);
     setPois([]);
     setPoiMetadata(null);
+    setSelectedPoiIds([]);
     setError("");
     setSelectedCategories([
       "attraction",
@@ -179,6 +184,103 @@ function MapView() {
     ]);
     setMaxDistance(null);
     setUseAi(false);
+  };
+
+  const handleTogglePoiSelection = (poiId) => {
+    setSelectedPoiIds((current) =>
+      current.includes(poiId)
+        ? current.filter((id) => id !== poiId)
+        : [...current, poiId]
+    );
+  };
+
+  const handleSelectVisiblePois = (poiIds = []) => {
+    setSelectedPoiIds((current) => {
+      const merged = new Set([...current, ...poiIds]);
+      return Array.from(merged);
+    });
+  };
+
+  const handleClearPoiSelection = () => {
+    setSelectedPoiIds([]);
+  };
+
+  // If backend does not provide distanceAlongRoute, use distance from origin as an approximation
+  const calculateFallbackDistance = (poi) => {
+    if (!startPoint) return null;
+    const lng = typeof poi.lng === "number" ? poi.lng : poi.lon;
+    if (typeof poi.lat !== "number" || typeof lng !== "number") return null;
+
+    const R = 6371;
+    const dLat = ((poi.lat - startPoint[0]) * Math.PI) / 180;
+    const dLon = ((lng - startPoint[1]) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((startPoint[0] * Math.PI) / 180) *
+        Math.cos((poi.lat * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const sortPoisForExport = (selected = []) => {
+    return selected
+      .map((poi) => {
+        const distanceForSort =
+          typeof poi.distanceAlongRoute === "number"
+            ? poi.distanceAlongRoute
+            : calculateFallbackDistance(poi);
+        return { ...poi, _distanceForSort: distanceForSort };
+      })
+      .sort((a, b) => {
+        if (
+          typeof a._distanceForSort === "number" &&
+          typeof b._distanceForSort === "number"
+        ) {
+          return a._distanceForSort - b._distanceForSort;
+        }
+        if (typeof a._distanceForSort === "number") return -1;
+        if (typeof b._distanceForSort === "number") return 1;
+        return 0;
+      })
+      .slice(0, 23)
+      .map((poi) => {
+        const { _distanceForSort, ...rest } = poi;
+        return rest;
+      });
+  };
+
+  const handleExportToGoogleMaps = () => {
+    if (!startPoint || !endPoint) {
+      window.alert("Please select both start and destination before exporting.");
+      return;
+    }
+
+    const selected = pois.filter((poi) => selectedPoiIds.includes(poi.id));
+    const waypoints = sortPoisForExport(selected);
+    const url = buildGoogleMapsDirectionsUrl({
+      origin: { lat: startPoint[0], lng: startPoint[1] },
+      destination: { lat: endPoint[0], lng: endPoint[1] },
+      pois: waypoints,
+    });
+
+    if (!url) {
+      window.alert("Could not build a Google Maps link. Please try again.");
+      return;
+    }
+
+    if (selected.length > 23) {
+      window.alert(
+        "Google Maps allows up to 23 stops between origin and destination. Exporting the first 23 selected places."
+      );
+    } else if (selected.length === 0) {
+      console.info(
+        "[maps] No POIs selected. Opening a direct route without stops."
+      );
+    }
+
+    window.open(url, "_blank");
   };
 
   // Default center (Germany)
@@ -213,6 +315,11 @@ function MapView() {
             pois={pois}
             startPoint={startPoint}
             onVisibleChange={setVisiblePois}
+            selectedPoiIds={selectedPoiIds}
+            onTogglePoiSelection={handleTogglePoiSelection}
+            onSelectVisible={handleSelectVisiblePois}
+            onClearSelection={handleClearPoiSelection}
+            onExportRoute={handleExportToGoogleMaps}
           />
         </>
       )}
