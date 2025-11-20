@@ -274,7 +274,10 @@ export class PoiController {
 
       // Apply AI filtering if requested
       if (useAi && pois.length > 0) {
-        const aiResults = await this.geminiService.filterPois(pois);
+        const aiResults = await this.geminiService.filterPois(
+          pois,
+          route as [number, number][] | undefined
+        );
         if (aiResults && aiResults.length > 0) {
           pois = aiResults;
           aiFiltered = true;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const CATEGORY_LABELS = {
     // Tourism
@@ -57,19 +57,52 @@ const PoiFilter = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(true);
 
+    // Local pending state; applies only after clicking "Apply filters"
+    const [pendingCategories, setPendingCategories] =
+        useState(selectedCategories);
+    const [pendingMaxDistance, setPendingMaxDistance] = useState(maxDistance);
+    const [pendingUseAi, setPendingUseAi] = useState(useAi);
+
+    const categoriesChanged =
+        pendingCategories.length !== selectedCategories.length ||
+        pendingCategories.some((c) => !selectedCategories.includes(c));
+    const hasChanges =
+        categoriesChanged ||
+        pendingMaxDistance !== maxDistance ||
+        pendingUseAi !== useAi;
+
+    // Keep pending state in sync if parent resets filters
+    useEffect(() => {
+        setPendingCategories(selectedCategories);
+    }, [selectedCategories]);
+
+    useEffect(() => {
+        setPendingMaxDistance(maxDistance);
+    }, [maxDistance]);
+
+    useEffect(() => {
+        setPendingUseAi(useAi);
+    }, [useAi]);
+
     const handleCategoryToggle = (category) => {
-        const newCategories = selectedCategories.includes(category)
-            ? selectedCategories.filter((c) => c !== category)
-            : [...selectedCategories, category];
-        onCategoriesChange(newCategories);
+        const newCategories = pendingCategories.includes(category)
+            ? pendingCategories.filter((c) => c !== category)
+            : [...pendingCategories, category];
+        setPendingCategories(newCategories);
     };
 
     const handleSelectAll = () => {
-        onCategoriesChange(availableCategories);
+        setPendingCategories(availableCategories);
     };
 
     const handleClearAll = () => {
-        onCategoriesChange([]);
+        setPendingCategories([]);
+    };
+
+    const handleApply = () => {
+        onCategoriesChange(pendingCategories);
+        onMaxDistanceChange(pendingMaxDistance);
+        onUseAiChange(pendingUseAi);
     };
 
     return (
@@ -109,7 +142,9 @@ const PoiFilter = ({
                                 Max distance from route
                             </label>
                             <span className="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                {maxDistance ? `${maxDistance} km` : "Auto"}
+                                {pendingMaxDistance
+                                    ? `${pendingMaxDistance} km`
+                                    : "Auto"}
                             </span>
                         </div>
 
@@ -119,10 +154,10 @@ const PoiFilter = ({
                                 min="0.5"
                                 max="50"
                                 step="0.5"
-                                value={maxDistance || 20}
-                                disabled={maxDistance === null}
+                                value={pendingMaxDistance ?? 20}
+                                disabled={pendingMaxDistance === null}
                                 onChange={(e) =>
-                                    onMaxDistanceChange(
+                                    setPendingMaxDistance(
                                         parseFloat(e.target.value)
                                     )
                                 }
@@ -132,9 +167,9 @@ const PoiFilter = ({
                                 <input
                                     type="checkbox"
                                     id="auto-dist"
-                                    checked={maxDistance === null}
+                                    checked={pendingMaxDistance === null}
                                     onChange={(e) =>
-                                        onMaxDistanceChange(
+                                        setPendingMaxDistance(
                                             e.target.checked ? null : 5
                                         )
                                     }
@@ -168,9 +203,9 @@ const PoiFilter = ({
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"
-                                    checked={useAi}
+                                    checked={pendingUseAi}
                                     onChange={(e) =>
-                                        onUseAiChange(e.target.checked)
+                                        setPendingUseAi(e.target.checked)
                                     }
                                 />
                                 <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -209,7 +244,7 @@ const PoiFilter = ({
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={selectedCategories.includes(
+                                        checked={pendingCategories.includes(
                                             category
                                         )}
                                         onChange={() =>
@@ -223,6 +258,20 @@ const PoiFilter = ({
                                 </label>
                             ))}
                         </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleApply}
+                            disabled={!hasChanges}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                                hasChanges
+                                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
+                        >
+                            Apply filters
+                        </button>
                     </div>
 
                     {/* Status Footer */}
