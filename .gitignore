@@ -36,3 +36,6 @@ build
 
 # OS
 Thumbs.db
+
+# Database
+backend/data/

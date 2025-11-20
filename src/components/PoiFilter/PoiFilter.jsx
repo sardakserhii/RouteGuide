@@ -1,13 +1,46 @@
 import React, { useState } from "react";
 
 const CATEGORY_LABELS = {
+  // Tourism
   attraction: "Достопримечательности",
   museum: "Музеи",
   viewpoint: "Смотровые площадки",
+  hotel: "Отели",
+  hostel: "Хостелы",
+  guest_house: "Гостевые дома",
+  camp_site: "Кемпинги",
+  theme_park: "Парки развлечений",
+  zoo: "Зоопарки",
+
+  // Historic
   monument: "Памятники",
+  memorial: "Мемориалы",
   castle: "Замки",
-  artwork: "Арт-объекты",
-  historic: "Исторические места",
+  ruins: "Руины",
+  archaeological_site: "Археология",
+
+  // Nature
+  peak: "Вершины",
+  beach: "Пляжи",
+  cave: "Пещеры",
+  cliff: "Скалы",
+  water: "Водоемы",
+  park: "Парки",
+
+  // Amenity
+  restaurant: "Рестораны",
+  cafe: "Кафе",
+  bar: "Бары",
+  pub: "Пабы",
+  fast_food: "Фастфуд",
+  cinema: "Кинотеатры",
+  theatre: "Театры",
+  arts_centre: "Арт-центры",
+
+  // Shop
+  mall: "Торговые центры",
+  souvenir: "Сувениры",
+  gift: "Подарки",
 };
 
 const PoiFilter = ({

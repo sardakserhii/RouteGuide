@@ -87,40 +87,96 @@ const PoiList = ({ pois, startPoint }) => {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-800 text-sm leading-tight mb-1 truncate group-hover:text-blue-600 transition-colors">
-                  {poi.name}
-                </h3>
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-gray-800 text-sm leading-tight mb-1 truncate group-hover:text-blue-600 transition-colors pr-2">
+                    {poi.name}
+                  </h3>
+                  {poi.isTopPick && (
+                    <span className="flex-shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                      ★ TOP
+                    </span>
+                  )}
+                </div>
 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                    {poi.tags?.tourism || "Место"}
+                    {poi.tags?.tourism ||
+                      poi.tags?.historic ||
+                      poi.tags?.amenity ||
+                      "Место"}
                   </span>
                   <span className="text-xs text-gray-500">
                     {poi.distance.toFixed(1)} км
                   </span>
                 </div>
 
-                {poi.tags?.description && (
-                  <p className="text-xs text-gray-600 line-clamp-2 mb-2">
-                    {poi.tags.description}
+                {/* Address */}
+                {(poi.tags?.["addr:street"] || poi.tags?.["addr:city"]) && (
+                  <div className="flex items-start gap-1 mb-1 text-xs text-gray-500">
+                    <span className="opacity-70">📍</span>
+                    <span className="truncate">
+                      {poi.tags["addr:street"]} {poi.tags["addr:housenumber"]},{" "}
+                      {poi.tags["addr:city"]}
+                    </span>
+                  </div>
+                )}
+
+                {/* Opening Hours */}
+                {poi.tags?.opening_hours && (
+                  <div className="flex items-start gap-1 mb-2 text-xs text-gray-500">
+                    <span className="opacity-70">🕒</span>
+                    <span
+                      className="truncate max-w-[200px]"
+                      title={poi.tags.opening_hours}
+                    >
+                      {poi.tags.opening_hours}
+                    </span>
+                  </div>
+                )}
+
+                {/* Description */}
+                {(poi.description ||
+                  poi.tags?.description ||
+                  poi.tags?.["description:ru"] ||
+                  poi.tags?.comment) && (
+                  <p className="text-xs text-gray-600 line-clamp-3 mb-2 italic bg-gray-50 p-1.5 rounded border border-gray-100">
+                    {poi.description ||
+                      poi.tags?.["description:ru"] ||
+                      poi.tags?.description ||
+                      poi.tags?.comment}
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 mt-auto">
                   {poi.tags?.wikipedia && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">
-                      Wikipedia
-                    </span>
-                  )}
-                  {poi.tags?.website && (
                     <a
-                      href={poi.tags.website}
+                      href={`https://wikipedia.org/wiki/${poi.tags.wikipedia}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100 hover:bg-blue-100"
+                      className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200 hover:bg-gray-200 hover:text-gray-800 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Wikipedia
+                    </a>
+                  )}
+                  {(poi.tags?.website || poi.tags?.url) && (
+                    <a
+                      href={poi.tags.website || poi.tags.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100 hover:bg-blue-100 hover:text-blue-800 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Сайт
+                    </a>
+                  )}
+                  {poi.tags?.phone && (
+                    <a
+                      href={`tel:${poi.tags.phone}`}
+                      className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded border border-green-100 hover:bg-green-100 hover:text-green-800 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      📞 {poi.tags.phone}
                     </a>
                   )}
                 </div>

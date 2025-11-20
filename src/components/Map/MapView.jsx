@@ -283,6 +283,12 @@ function MapView() {
           ⚠️ {error}
         </div>
       )}
+      {poiMetadata?.truncated && (
+        <div className="absolute top-20 right-4 z-[1000] bg-yellow-100 p-3 rounded-lg shadow-lg text-yellow-800 max-w-xs">
+          ⚠️ Найдено очень много мест ({poiMetadata.total}), отображаем только
+          первые {pois.length}
+        </div>
+      )}
     </div>
   );
 }
