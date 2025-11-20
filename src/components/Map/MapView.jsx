@@ -31,7 +31,7 @@ function MapClickHandler({ selectionMode, onPointSelected }) {
 function MapView() {
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
-  const [selectionMode, setSelectionMode] = useState(null); // 'start', 'end', or null
+  const [selectionMode, setSelectionMode] = useState(null); // "start", "end", or null
   const [route, setRoute] = useState([]);
   const [pois, setPois] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -63,7 +63,6 @@ function MapView() {
     const getRoute = async () => {
       setLoading(true);
       setError("");
-      // Don't clear POIs yet, let them stay until new route is ready or just clear them if you want
       setPois([]);
       setPoiMetadata(null);
 
@@ -72,8 +71,11 @@ function MapView() {
         setRoute(latLngs);
       } catch (e) {
         console.error(e);
-        setError(e.message || "Ошибка загрузки маршрута");
-        setLoading(false); // Stop loading if route fails
+        setRoute([]);
+        setError(
+          e?.message || "Unable to calculate the route. Please try again."
+        );
+        setLoading(false);
       }
     };
 
@@ -85,7 +87,7 @@ function MapView() {
     if (route.length === 0) return;
 
     const getPois = async () => {
-      setLoading(true); // Set loading while fetching POIs
+      setLoading(true);
 
       try {
         // Calculate Bounding Box
@@ -119,7 +121,7 @@ function MapView() {
         }
       } catch (e) {
         console.error(e);
-        // Don't overwrite route error if any, but maybe show warning
+        setError("Unable to load places right now. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -159,7 +161,6 @@ function MapView() {
     setPois([]);
     setPoiMetadata(null);
     setError("");
-    // Reset filters to default if desired, or keep them
     setSelectedCategories([
       "attraction",
       "museum",
@@ -225,7 +226,7 @@ function MapView() {
         {startPoint && (
           <Marker position={startPoint} icon={startIcon}>
             <Popup>
-              📍 Начальная точка
+              Start point
               <br />
               <small>
                 {startPoint[0].toFixed(5)}, {startPoint[1].toFixed(5)}
@@ -237,7 +238,7 @@ function MapView() {
         {endPoint && (
           <Marker position={endPoint} icon={endIcon}>
             <Popup>
-              🏁 Конечная точка
+              Destination
               <br />
               <small>
                 {endPoint[0].toFixed(5)}, {endPoint[1].toFixed(5)}
@@ -259,7 +260,7 @@ function MapView() {
                 {poi.tags?.tourism && <span>{poi.tags.tourism}</span>}
                 {poi.description && (
                   <div className="mt-2 text-sm text-gray-700 italic border-t pt-1">
-                    ✨ {poi.description}
+                    About: {poi.description}
                   </div>
                 )}
               </Popup>
@@ -273,20 +274,22 @@ function MapView() {
           <div className="flex items-center gap-2">
             <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
             <span>
-              {useAi ? "Анализируем места с AI..." : "Загрузка маршрута..."}
+              {useAi
+                ? "Fetching places with AI filtering..."
+                : "Loading data..."}
             </span>
           </div>
         </div>
       )}
       {error && (
         <div className="absolute top-4 right-4 z-[1000] bg-red-100 p-3 rounded-lg shadow-lg text-red-600">
-          ⚠️ {error}
+          Error: {error}
         </div>
       )}
       {poiMetadata?.truncated && (
         <div className="absolute top-20 right-4 z-[1000] bg-yellow-100 p-3 rounded-lg shadow-lg text-yellow-800 max-w-xs">
-          ⚠️ Найдено очень много мест ({poiMetadata.total}), отображаем только
-          первые {pois.length}
+          Showing {pois.length} places out of {poiMetadata.total}. Narrow filters
+          to see fewer.
         </div>
       )}
     </div>

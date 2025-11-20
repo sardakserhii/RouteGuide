@@ -2,45 +2,45 @@ import React, { useState } from "react";
 
 const CATEGORY_LABELS = {
   // Tourism
-  attraction: "Достопримечательности",
-  museum: "Музеи",
-  viewpoint: "Смотровые площадки",
-  hotel: "Отели",
-  hostel: "Хостелы",
-  guest_house: "Гостевые дома",
-  camp_site: "Кемпинги",
-  theme_park: "Парки развлечений",
-  zoo: "Зоопарки",
+  attraction: "Attraction",
+  museum: "Museum",
+  viewpoint: "Viewpoint",
+  hotel: "Hotel",
+  hostel: "Hostel",
+  guest_house: "Guest house",
+  camp_site: "Camp site",
+  theme_park: "Theme park",
+  zoo: "Zoo",
 
   // Historic
-  monument: "Памятники",
-  memorial: "Мемориалы",
-  castle: "Замки",
-  ruins: "Руины",
-  archaeological_site: "Археология",
+  monument: "Monument",
+  memorial: "Memorial",
+  castle: "Castle",
+  ruins: "Ruins",
+  archaeological_site: "Archaeological site",
 
   // Nature
-  peak: "Вершины",
-  beach: "Пляжи",
-  cave: "Пещеры",
-  cliff: "Скалы",
-  water: "Водоемы",
-  park: "Парки",
+  peak: "Peak",
+  beach: "Beach",
+  cave: "Cave entrance",
+  cliff: "Cliff",
+  water: "Water feature",
+  park: "Park",
 
   // Amenity
-  restaurant: "Рестораны",
-  cafe: "Кафе",
-  bar: "Бары",
-  pub: "Пабы",
-  fast_food: "Фастфуд",
-  cinema: "Кинотеатры",
-  theatre: "Театры",
-  arts_centre: "Арт-центры",
+  restaurant: "Restaurant",
+  cafe: "Cafe",
+  bar: "Bar",
+  pub: "Pub",
+  fast_food: "Fast food",
+  cinema: "Cinema",
+  theatre: "Theatre",
+  arts_centre: "Arts centre",
 
   // Shop
-  mall: "Торговые центры",
-  souvenir: "Сувениры",
-  gift: "Подарки",
+  mall: "Shopping mall",
+  souvenir: "Souvenir shop",
+  gift: "Gift shop",
 };
 
 const PoiFilter = ({
@@ -80,8 +80,8 @@ const PoiFilter = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">🔍</span>
-          <h3 className="font-semibold text-gray-800">Фильтры мест</h3>
+          <span className="text-lg">??</span>
+          <h3 className="font-semibold text-gray-800">Place filters</h3>
           {poiCount !== undefined && (
             <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
               {poiCount}
@@ -89,7 +89,7 @@ const PoiFilter = ({
           )}
         </div>
         <button className="text-gray-400 hover:text-gray-600">
-          {isExpanded ? "▼" : "▲"}
+          {isExpanded ? "�" : "+"}
         </button>
       </div>
 
@@ -102,10 +102,10 @@ const PoiFilter = ({
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium text-gray-700">
-                Расстояние от маршрута
+                Max distance from route
               </label>
               <span className="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                {maxDistance ? `${maxDistance} км` : "Авто"}
+                {maxDistance ? `${maxDistance} km` : "Auto"}
               </span>
             </div>
 
@@ -115,7 +115,7 @@ const PoiFilter = ({
                 min="0.5"
                 max="50"
                 step="0.5"
-                value={maxDistance || 20} // Default visual value if auto
+                value={maxDistance || 20}
                 disabled={maxDistance === null}
                 onChange={(e) =>
                   onMaxDistanceChange(parseFloat(e.target.value))
@@ -136,7 +136,7 @@ const PoiFilter = ({
                   htmlFor="auto-dist"
                   className="text-xs text-gray-600 cursor-pointer select-none"
                 >
-                  Авто
+                  Auto
                 </label>
               </div>
             </div>
@@ -146,13 +146,13 @@ const PoiFilter = ({
           <div className="mb-6 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">✨</span>
+                <span className="text-lg">?</span>
                 <div>
                   <h4 className="text-sm font-semibold text-indigo-900">
-                    Умный фильтр AI
+                    Smart AI filtering
                   </h4>
                   <p className="text-xs text-indigo-600">
-                    Топ-5 лучших мест от Gemini
+                    Gemini picks highlights for you
                   </p>
                 </div>
               </div>
@@ -172,21 +172,21 @@ const PoiFilter = ({
           <div className="mb-4">
             <div className="flex justify-between items-center mb-3">
               <label className="text-sm font-medium text-gray-700">
-                Категории
+                Categories
               </label>
               <div className="flex gap-2 text-xs">
                 <button
                   onClick={handleSelectAll}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  Все
+                  Select all
                 </button>
                 <span className="text-gray-300">|</span>
                 <button
                   onClick={handleClearAll}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  Сбросить
+                  Clear
                 </button>
               </div>
             </div>
@@ -214,7 +214,7 @@ const PoiFilter = ({
           {/* Status Footer */}
           {totalCount > 0 && (
             <div className="pt-3 border-t border-gray-100 text-xs text-center text-gray-500">
-              Показано {poiCount} из {totalCount} найденных мест
+              Showing {poiCount} of {totalCount} places
             </div>
           )}
         </div>

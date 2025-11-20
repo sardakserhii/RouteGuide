@@ -35,13 +35,13 @@ const PoiList = ({ pois, startPoint }) => {
     <div className="absolute top-5 right-5 bottom-5 w-96 bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col z-[1000] border border-gray-100">
       <div className="p-4 bg-white border-b border-gray-100 shadow-sm z-10">
         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-          <span>📍</span> Интересные места
+          <span>??</span> Places along the route
           <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full ml-auto">
             {sortedPois.length}
           </span>
         </h2>
         <p className="text-xs text-gray-500 mt-1">
-          Отсортировано по удаленности от старта
+          Sorted by distance from your starting point
         </p>
       </div>
 
@@ -93,7 +93,7 @@ const PoiList = ({ pois, startPoint }) => {
                   </h3>
                   {poi.isTopPick && (
                     <span className="flex-shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
-                      ★ TOP
+                      AI TOP
                     </span>
                   )}
                 </div>
@@ -103,19 +103,19 @@ const PoiList = ({ pois, startPoint }) => {
                     {poi.tags?.tourism ||
                       poi.tags?.historic ||
                       poi.tags?.amenity ||
-                      "Место"}
+                      "other"}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {poi.distance.toFixed(1)} км
+                    {poi.distance.toFixed(1)} km
                   </span>
                 </div>
 
                 {/* Address */}
                 {(poi.tags?.["addr:street"] || poi.tags?.["addr:city"]) && (
                   <div className="flex items-start gap-1 mb-1 text-xs text-gray-500">
-                    <span className="opacity-70">📍</span>
+                    <span className="opacity-70">??</span>
                     <span className="truncate">
-                      {poi.tags["addr:street"]} {poi.tags["addr:housenumber"]},{" "}
+                      {poi.tags["addr:street"]} {poi.tags["addr:housenumber"]}, {" "}
                       {poi.tags["addr:city"]}
                     </span>
                   </div>
@@ -124,7 +124,7 @@ const PoiList = ({ pois, startPoint }) => {
                 {/* Opening Hours */}
                 {poi.tags?.opening_hours && (
                   <div className="flex items-start gap-1 mb-2 text-xs text-gray-500">
-                    <span className="opacity-70">🕒</span>
+                    <span className="opacity-70">?</span>
                     <span
                       className="truncate max-w-[200px]"
                       title={poi.tags.opening_hours}
@@ -167,7 +167,7 @@ const PoiList = ({ pois, startPoint }) => {
                       className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100 hover:bg-blue-100 hover:text-blue-800 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Сайт
+                      Website
                     </a>
                   )}
                   {poi.tags?.phone && (
@@ -176,7 +176,7 @@ const PoiList = ({ pois, startPoint }) => {
                       className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded border border-green-100 hover:bg-green-100 hover:text-green-800 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      📞 {poi.tags.phone}
+                      Tel. {poi.tags.phone}
                     </a>
                   )}
                 </div>

@@ -1,21 +1,27 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Poi } from "./overpassService";
-
-// Placeholder for API Key - User will replace this or load from env
-// In a real app, use process.env.GEMINI_API_KEY
-const GEMINI_API_KEY = "AIzaSyCo4IFWwfoKUlcEauaMUQ8s1pT4k78g3fc";
+// import api key from .env
+import dotenv from "dotenv";
+dotenv.config();
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI | undefined;
   private model: any;
 
   constructor() {
-    if (GEMINI_API_KEY) {
-      this.genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-      this.model = this.genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      console.warn(
+        "[GeminiService] GEMINI_API_KEY is not set. AI filtering will be disabled."
+      );
+      return;
     }
+
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
   }
 
   async filterPois(pois: Poi[]): Promise<Poi[] | null> {
