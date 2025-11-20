@@ -36,6 +36,7 @@ function MapView() {
   const [pois, setPois] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [visiblePois, setVisiblePois] = useState([]);
 
   // Filter state
   const [selectedCategories, setSelectedCategories] = useState([
@@ -135,6 +136,12 @@ function MapView() {
     return () => clearTimeout(timer);
   }, [route, selectedCategories, maxDistance, useAi]);
 
+  useEffect(() => {
+    if (pois.length === 0) {
+      setVisiblePois([]);
+    }
+  }, [pois]);
+
   const handlePointSelected = (point) => {
     if (selectionMode === "start") {
       setStartPoint(point);
@@ -202,7 +209,11 @@ function MapView() {
             totalCount={poiMetadata?.total || pois.length}
             disabled={loading}
           />
-          <PoiList pois={pois} startPoint={startPoint} />
+          <PoiList
+            pois={pois}
+            startPoint={startPoint}
+            onVisibleChange={setVisiblePois}
+          />
         </>
       )}
 
@@ -251,7 +262,7 @@ function MapView() {
           <Polyline positions={route} color="#2563eb" weight={4} />
         )}
 
-        {pois.map((poi) => {
+        {(visiblePois.length ? visiblePois : pois).map((poi) => {
           return (
             <Marker key={poi.id} position={[poi.lat, poi.lon]} icon={poiIcon}>
               <Popup>
