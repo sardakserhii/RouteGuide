@@ -29,6 +29,65 @@ export class PoiController {
     this.tilePoisService = new TilePoisService();
   }
 
+  /**
+   * Pick POIs evenly along the route so dense areas near start/end don't dominate.
+   */
+  private stratifyPoisAlongRoute(
+    pois: Poi[],
+    route: [number, number][],
+    limit: number
+  ): Poi[] {
+    if (!route.length || limit <= 0) return [];
+
+    // Build anchor points along the route (sampled vertices)
+    const targetAnchors = Math.min(30, Math.max(10, Math.floor(route.length / 8)));
+    const step = Math.max(1, Math.floor(route.length / targetAnchors));
+
+    const anchors: [number, number][] = [];
+    for (let i = 0; i < route.length; i += step) {
+      anchors.push(route[i] as [number, number]);
+    }
+    // Ensure the end point is included
+    const last = route[route.length - 1] as [number, number];
+    const lastAnchor = anchors[anchors.length - 1];
+    if (!lastAnchor || lastAnchor[0] !== last[0] || lastAnchor[1] !== last[1]) {
+      anchors.push(last);
+    }
+
+    const grouped: Poi[][] = anchors.map(() => []);
+
+    // Assign each POI to the nearest anchor; keep existing priority order inside the group
+    for (const poi of pois) {
+      let nearestIdx = 0;
+      let nearestDist = Infinity;
+
+      anchors.forEach(([alat, alon], idx) => {
+        const d = haversineDistance(poi.lat, poi.lon, alat, alon);
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearestIdx = idx;
+        }
+      });
+
+      grouped[nearestIdx].push(poi);
+    }
+
+    // Round-robin take from each anchor group to distribute results
+    const stratified: Poi[] = [];
+    const maxGroup = Math.max(...grouped.map((g) => g.length));
+    for (let layer = 0; layer < maxGroup && stratified.length < limit; layer++) {
+      for (const group of grouped) {
+        if (stratified.length >= limit) break;
+        const candidate = group[layer];
+        if (candidate) {
+          stratified.push(candidate);
+        }
+      }
+    }
+
+    return stratified.slice(0, limit);
+  }
+
   async getPois(
     request: FastifyRequest<{ Body: PoisQuery }>,
     reply: FastifyReply
@@ -224,7 +283,15 @@ export class PoiController {
 
       // Apply user limit if not AI filtered
       if (!aiFiltered && pois.length > limit) {
-        pois = pois.slice(0, limit);
+        if (route && route.length > 0) {
+          pois = this.stratifyPoisAlongRoute(
+            pois,
+            route as [number, number][],
+            limit
+          );
+        } else {
+          pois = pois.slice(0, limit);
+        }
       }
 
       return {
