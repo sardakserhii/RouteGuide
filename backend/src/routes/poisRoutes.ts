@@ -4,6 +4,11 @@ import axios from 'axios';
 interface PoisQuery {
   bbox: number[]; // [minLat, maxLat, minLng, maxLng]
   route?: number[][]; // [[lat, lng], ...]
+  filters?: {
+    categories?: string[]; // ['attraction', 'museum', 'viewpoint', 'monument', 'castle', 'artwork', 'historic']
+    maxDistance?: number | null; // in kilometers, null = use automatic calculation
+    limit?: number; // maximum number of POIs (default 50)
+  };
 }
 
 // Helper function to calculate haversine distance between two points in km
@@ -73,11 +78,16 @@ function pointToSegmentDistance(
 
 export default async function poisRoutes(fastify: FastifyInstance) {
   fastify.post('/', async (request: FastifyRequest<{ Body: PoisQuery }>, reply: FastifyReply) => {
-    const { bbox, route } = request.body;
+    const { bbox, route, filters = {} } = request.body;
 
     if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) {
       return reply.code(400).send({ error: 'Missing or invalid bbox parameter' });
     }
+
+    // Extract filter parameters with defaults
+    const selectedCategories = filters.categories || ['attraction', 'museum', 'viewpoint', 'monument', 'castle', 'artwork', 'historic'];
+    const customMaxDistance = filters.maxDistance;
+    const limit = filters.limit || 50;
 
     // Parse bbox and route
     const [minLat, maxLat, minLng, maxLng] = bbox;
@@ -88,8 +98,15 @@ export default async function poisRoutes(fastify: FastifyInstance) {
       const [startLat, startLng] = route[0];
       const [endLat, endLng] = route[route.length - 1];
       const totalDistance = haversineDistance(startLat, startLng, endLat, endLng);
-      maxDeviation = totalDistance / 20; // Maximum deviation from route
-      fastify.log.info(`Route distance: ${totalDistance.toFixed(2)} km, max deviation: ${maxDeviation.toFixed(2)} km`);
+      
+      // Use custom maxDistance if provided, otherwise use automatic calculation
+      if (customMaxDistance !== undefined && customMaxDistance !== null) {
+        maxDeviation = customMaxDistance;
+        fastify.log.info(`Using custom max deviation: ${maxDeviation.toFixed(2)} km`);
+      } else {
+        maxDeviation = totalDistance / 20; // Maximum deviation from route
+        fastify.log.info(`Route distance: ${totalDistance.toFixed(2)} km, auto max deviation: ${maxDeviation.toFixed(2)} km`);
+      }
     }
 
     // Calculate a smaller search area to avoid timeout
@@ -120,25 +137,62 @@ export default async function poisRoutes(fastify: FastifyInstance) {
 
     fastify.log.info(`Search bounds: lat[${searchMinLat.toFixed(3)}, ${searchMaxLat.toFixed(3)}], lng[${searchMinLng.toFixed(3)}, ${searchMaxLng.toFixed(3)}]`);
 
+    // Build Overpass QL query dynamically based on selected categories
+    const categoryQueries: string[] = [];
+    
+    // Map of category to Overpass queries
+    const categoryMap: Record<string, string[]> = {
+      'attraction': [`node["tourism"="attraction"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`],
+      'museum': [`node["tourism"="museum"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`],
+      'viewpoint': [`node["tourism"="viewpoint"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`],
+      'monument': [
+        `node["tourism"="monument"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`,
+        `node["historic"="monument"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`
+      ],
+      'castle': [
+        `node["tourism"="castle"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`,
+        `node["historic"="castle"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`
+      ],
+      'artwork': [`node["tourism"="artwork"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`],
+      'historic': [`node["historic"="memorial"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});`]
+    };
+
+    // Build query parts based on selected categories
+    selectedCategories.forEach(category => {
+      if (categoryMap[category]) {
+        categoryQueries.push(...categoryMap[category]);
+      }
+    });
+
+    // If no categories selected, return empty result
+    if (categoryQueries.length === 0) {
+      fastify.log.info('No categories selected, returning empty result');
+      return {
+        pois: [],
+        metadata: {
+          total: 0,
+          filtered: 0,
+          filtersApplied: {
+            categories: selectedCategories,
+            maxDistance: maxDeviation,
+            limit
+          }
+        }
+      };
+    }
+
     // Construct Overpass QL query
-    // Search for significant tourism attractions only
     const query = `
       [out:json]
       [timeout:60]
       ;
       (
-        node["tourism"="attraction"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["tourism"="museum"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["tourism"="viewpoint"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["tourism"="monument"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["tourism"="castle"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["tourism"="artwork"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["historic"="castle"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["historic"="monument"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
-        node["historic"="memorial"](${searchMinLat},${searchMinLng},${searchMaxLat},${searchMaxLng});
+        ${categoryQueries.join('\n        ')}
       );
       out body;
     `;
+
+    fastify.log.info(`Overpass query built with ${categoryQueries.length} category queries for categories: ${selectedCategories.join(', ')}`);
 
     const overpassUrl = 'https://overpass-api.de/api/interpreter';
 
@@ -204,11 +258,24 @@ export default async function poisRoutes(fastify: FastifyInstance) {
         return 0;
       });
 
-      // Limit to top 50 POIs
-      pois = pois.slice(0, 50);
+      // Limit to requested number of POIs
+      const totalFiltered = pois.length;
+      pois = pois.slice(0, limit);
 
       fastify.log.info(`Returning ${pois.length} POIs to client (filtered from ${elements.length})`);
-      return pois;
+      
+      return {
+        pois,
+        metadata: {
+          total: elements.length,
+          filtered: totalFiltered,
+          filtersApplied: {
+            categories: selectedCategories,
+            maxDistance: maxDeviation,
+            limit
+          }
+        }
+      };
     } catch (error: any) {
       fastify.log.error('Overpass API error:', error.message);
       if (error.response) {

@@ -30,12 +30,13 @@ export const fetchRouteData = async (from, to) => {
   }
 };
 
-export const fetchPoisData = async (bbox, route) => {
+export const fetchPoisData = async (bbox, route, filters = {}) => {
     // bbox: [minLat, maxLat, minLng, maxLng]
     // route: [[lat, lng], [lat, lng], ...]
+    // filters: { categories, maxDistance, limit }
     const url = `${API_BASE_URL}/pois`;
 
-    console.log('🔍 Fetching POIs via POST');
+    console.log('🔍 Fetching POIs via POST with filters:', filters);
 
     try {
         const res = await fetch(url, {
@@ -43,19 +44,27 @@ export const fetchPoisData = async (bbox, route) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ bbox, route })
+            body: JSON.stringify({ bbox, route, filters })
         });
         
         if (!res.ok) {
             throw new Error("Backend error " + res.status);
         }
         const data = await res.json();
-        console.log('📍 POIs received:', data?.length || 0, 'items');
-        console.log('📍 First POI:', data?.[0]);
-        return data;
+        
+        // Handle new response format { pois, metadata } or fallback to array
+        const pois = Array.isArray(data) ? data : (data.pois || []);
+        const metadata = !Array.isArray(data) ? data.metadata : null;
+        
+        console.log('📍 POIs received:', pois.length, 'items');
+        if (metadata) {
+            console.log('📊 Metadata:', metadata);
+        }
+        
+        return { pois, metadata };
     } catch (error) {
         console.error("Failed to fetch POIs:", error);
-        return [];
+        return { pois: [], metadata: null };
     }
 };
 
