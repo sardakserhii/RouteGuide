@@ -1,8 +1,8 @@
-import crypto from "crypto";
 import { Tile } from "../utils/tiles";
 import { Poi, OverpassService } from "./overpassService";
 import { PoisRepository } from "../db/poisRepository";
 import { TilesRepository } from "../db/tilesRepository";
+import { buildFiltersHash } from "../utils/filtersHash";
 
 export interface PoiFilters {
   categories: string[];
@@ -21,18 +21,6 @@ export class TilePoisService {
   }
 
   /**
-   * Generates a stable hash for filters to use in cache keys
-   */
-  private calculateFiltersHash(filters: PoiFilters): string {
-    const normalized = {
-      categories: [...filters.categories].sort(),
-      maxDistance: filters.maxDistance,
-    };
-    const str = JSON.stringify(normalized);
-    return crypto.createHash("md5").update(str).digest("hex").substring(0, 8);
-  }
-
-  /**
    * Loads POIs for a single tile, using cache if available and fresh
    */
   async loadTilePois(
@@ -40,7 +28,8 @@ export class TilePoisService {
     filters: PoiFilters,
     options: { ttlDays: number; requestDelay?: number }
   ): Promise<Poi[]> {
-    const filtersHash = this.calculateFiltersHash(filters);
+    // Hash only by categories so preload and runtime share the same cache key
+    const filtersHash = buildFiltersHash(filters.categories);
     const tileKey = `${tile.id}_${filtersHash}`;
 
     // Check if tile is cached and fresh

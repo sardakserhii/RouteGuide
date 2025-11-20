@@ -1,7 +1,7 @@
 import { OverpassService } from "../src/services/overpassService";
 import { PoisRepository } from "../src/db/poisRepository";
 import { TilesRepository } from "../src/db/tilesRepository";
-import crypto from "crypto";
+import { buildFiltersHash } from "../src/utils/filtersHash";
 
 /**
  * Script to preload POI data for a specific region (e.g., Germany)
@@ -74,15 +74,6 @@ function generateTiles(bbox: {
 }
 
 /**
- * Calculate filters hash (same as in tilePoisService.ts)
- */
-function calculateFiltersHash(categories: string[]): string {
-  const normalized = { categories: [...categories].sort() };
-  const str = JSON.stringify(normalized);
-  return crypto.createHash("md5").update(str).digest("hex").substring(0, 8);
-}
-
-/**
  * Check if tile is already cached
  */
 function isTileCached(
@@ -124,7 +115,7 @@ async function preloadRegion(regionKey: keyof typeof REGIONS) {
   );
 
   // Calculate filters hash
-  const filtersHash = calculateFiltersHash(CATEGORIES);
+  const filtersHash = buildFiltersHash(CATEGORIES);
 
   // Filter out already cached tiles
   const uncachedTiles = tiles.filter(
