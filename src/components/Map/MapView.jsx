@@ -13,6 +13,7 @@ import { fetchRouteData, fetchPoisData } from "../../api/routeApi";
 import { startIcon, endIcon, poiIcon } from "../../utils/mapIcons";
 import RoutePanel from "../RoutePanel/RoutePanel";
 import PoiFilter from "../PoiFilter/PoiFilter";
+import PoiList from "../PoiList/PoiList";
 
 // Component to handle map clicks
 function MapClickHandler({ selectionMode, onPointSelected }) {
@@ -47,6 +48,7 @@ function MapView() {
     "historic",
   ]);
   const [maxDistance, setMaxDistance] = useState(null);
+  const [useAi, setUseAi] = useState(false);
   const [poiMetadata, setPoiMetadata] = useState(null);
 
   // 1. Calculate route when start/end points change
@@ -99,6 +101,7 @@ function MapView() {
           categories: selectedCategories,
           maxDistance: maxDistance,
           limit: 50,
+          useAi: useAi,
         };
 
         const data = await fetchPoisData(
@@ -128,7 +131,7 @@ function MapView() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [route, selectedCategories, maxDistance]);
+  }, [route, selectedCategories, maxDistance, useAi]);
 
   const handlePointSelected = (point) => {
     if (selectionMode === "start") {
@@ -167,6 +170,7 @@ function MapView() {
       "historic",
     ]);
     setMaxDistance(null);
+    setUseAi(false);
   };
 
   // Default center (Germany)
@@ -185,15 +189,20 @@ function MapView() {
       />
 
       {route.length > 0 && (
-        <PoiFilter
-          selectedCategories={selectedCategories}
-          onCategoriesChange={setSelectedCategories}
-          maxDistance={maxDistance}
-          onMaxDistanceChange={setMaxDistance}
-          poiCount={pois.length}
-          totalCount={poiMetadata?.total || pois.length}
-          disabled={loading}
-        />
+        <>
+          <PoiFilter
+            selectedCategories={selectedCategories}
+            onCategoriesChange={setSelectedCategories}
+            maxDistance={maxDistance}
+            onMaxDistanceChange={setMaxDistance}
+            useAi={useAi}
+            onUseAiChange={setUseAi}
+            poiCount={pois.length}
+            totalCount={poiMetadata?.total || pois.length}
+            disabled={loading}
+          />
+          <PoiList pois={pois} startPoint={startPoint} />
+        </>
       )}
 
       <MapContainer
@@ -248,6 +257,11 @@ function MapView() {
                 <strong>{poi.name}</strong>
                 <br />
                 {poi.tags?.tourism && <span>{poi.tags.tourism}</span>}
+                {poi.description && (
+                  <div className="mt-2 text-sm text-gray-700 italic border-t pt-1">
+                    ✨ {poi.description}
+                  </div>
+                )}
               </Popup>
             </Marker>
           );
@@ -255,10 +269,12 @@ function MapView() {
       </MapContainer>
 
       {loading && (
-        <div className="absolute top-4 right-4 z-[1000] bg-white p-3 rounded-lg shadow-lg">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white p-3 rounded-lg shadow-lg">
           <div className="flex items-center gap-2">
             <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-            <span>Загрузка маршрута...</span>
+            <span>
+              {useAi ? "Анализируем места с AI..." : "Загрузка маршрута..."}
+            </span>
           </div>
         </div>
       )}
