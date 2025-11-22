@@ -2,6 +2,7 @@ import { OverpassService } from "../src/services/overpassService";
 import { PoisRepository } from "../src/db/poisRepository";
 import { TilesRepository } from "../src/db/tilesRepository";
 import { buildFiltersHash } from "../src/utils/filtersHash";
+import { CATEGORY_MAPPINGS } from "../src/config/categories";
 
 /**
  * Script to preload POI data for a specific region (e.g., Germany)
@@ -25,15 +26,7 @@ const REGIONS = {
 const TILE_SIZE = parseFloat(process.env.TILE_SIZE_DEG || "0.25");
 const BATCH_SIZE = 3; // Process 3 tiles in parallel (matching endpoints)
 const BATCH_DELAY_MS = 1000; // Delay between batches
-const CATEGORIES = [
-  "attraction",
-  "museum",
-  "viewpoint",
-  "monument",
-  "castle",
-  "artwork",
-  "historic",
-];
+const CATEGORIES = Object.keys(CATEGORY_MAPPINGS);
 
 interface Tile {
   id: string;

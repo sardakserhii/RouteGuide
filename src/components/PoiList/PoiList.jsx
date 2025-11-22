@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { getCategoryEmoji } from "../../utils/categoryIcons";
 
 const CATEGORY_LABELS = {
   attraction: "Attraction",
@@ -74,7 +75,12 @@ const PoiList = ({
 
     return [...pois]
       .map((poi) => {
-        const distance = haversineDistance(startLat, startLng, poi.lat, poi.lon);
+        const distance = haversineDistance(
+          startLat,
+          startLng,
+          poi.lat,
+          poi.lon
+        );
         const category = deriveCategory(poi);
         return { ...poi, distance, category };
       })
@@ -106,7 +112,9 @@ const PoiList = ({
 
   const visiblePois = useMemo(() => {
     if (selectedCategories.length === 0) return [];
-    return enrichedPois.filter((poi) => selectedCategories.includes(poi.category));
+    return enrichedPois.filter((poi) =>
+      selectedCategories.includes(poi.category)
+    );
   }, [enrichedPois, selectedCategories]);
 
   useEffect(() => {
@@ -159,7 +167,7 @@ const PoiList = ({
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                   }`}
                 >
-                  {cat.label} ({cat.count})
+                  {getCategoryEmoji(cat.key)} {cat.label} ({cat.count})
                 </button>
               );
             })}
@@ -250,8 +258,11 @@ const PoiList = ({
                         {poi.name}
                       </h3>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                          {CATEGORY_LABELS[poi.category] || poi.category || "Other"}
+                        <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 flex items-center gap-1">
+                          <span>{getCategoryEmoji(poi.category)}</span>
+                          {CATEGORY_LABELS[poi.category] ||
+                            poi.category ||
+                            "Other"}
                         </span>
                         <span className="text-xs text-gray-500">
                           {poi.distance.toFixed(1)} km from start

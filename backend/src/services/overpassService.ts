@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CATEGORY_MAPPINGS } from "../config/categories";
+import { CATEGORY_MAPPINGS, determineCategory } from "../config/categories";
 import { minDistanceToRoute } from "./geoService";
 
 interface OverpassElement {
@@ -19,6 +19,7 @@ export interface Poi {
   name: string;
   tags: Record<string, string>;
   tourism: string;
+  category: string; // New field
   hasName: boolean;
   distance?: number;
   description?: string;
@@ -220,6 +221,7 @@ export class OverpassService {
             el.tags?.shop ||
             el.tags?.natural ||
             "unknown",
+          category: determineCategory(el.tags), // Populate category
           hasName: !!el.tags?.name,
         }));
 

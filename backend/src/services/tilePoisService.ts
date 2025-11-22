@@ -3,6 +3,7 @@ import { Poi, OverpassService } from "./overpassService";
 import { PoisRepository } from "../db/poisRepository";
 import { TilesRepository } from "../db/tilesRepository";
 import { buildFiltersHash } from "../utils/filtersHash";
+import { CATEGORY_MAPPINGS } from "../config/categories";
 
 export interface PoiFilters {
   categories: string[];
@@ -28,7 +29,26 @@ export class TilePoisService {
     filters: PoiFilters,
     options: { ttlDays: number; requestDelay?: number }
   ): Promise<Poi[]> {
-    // Hash only by categories so preload and runtime share the same cache key
+    // 1. Try to load from "all categories" cache (superset)
+    const allCategories = Object.keys(CATEGORY_MAPPINGS);
+    const allCategoriesHash = buildFiltersHash(allCategories);
+
+    if (
+      this.tilesRepo.isTileFresh(tile.id, allCategoriesHash, options.ttlDays)
+    ) {
+      console.log(`[TilePoisService] Superset cache hit for tile ${tile.id}`);
+      const poiIds = this.tilesRepo.getPoisForTile(tile.id, allCategoriesHash);
+      const allPois = this.poisRepo.getPoisByIds(poiIds);
+
+      // Filter in memory
+      const filteredPois = allPois.filter((poi) =>
+        filters.categories.includes(poi.category)
+      );
+
+      return filteredPois;
+    }
+
+    // 2. Fallback to specific cache
     const filtersHash = buildFiltersHash(filters.categories);
     const tileKey = `${tile.id}_${filtersHash}`;
 

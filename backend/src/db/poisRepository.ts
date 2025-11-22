@@ -1,5 +1,6 @@
 import db from "./database";
 import { Poi } from "../services/overpassService";
+import { determineCategory } from "../config/categories";
 
 export interface DbPoi {
   id: string;
@@ -65,6 +66,7 @@ export class PoisRepository {
         tags.shop ||
         tags.natural ||
         "unknown",
+      category: determineCategory(tags),
       hasName: !!tags.name,
     };
   }

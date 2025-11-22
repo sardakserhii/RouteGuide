@@ -10,7 +10,8 @@ import "leaflet/dist/leaflet.css";
 import { useState, useEffect } from "react";
 
 import { fetchRouteData, fetchPoisData } from "../../api/routeApi";
-import { startIcon, endIcon, poiIcon } from "../../utils/mapIcons";
+import { startIcon, endIcon } from "../../utils/mapIcons";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 import RoutePanel from "../RoutePanel/RoutePanel";
 import PoiFilter from "../PoiFilter/PoiFilter";
 import PoiList from "../PoiList/PoiList";
@@ -253,7 +254,9 @@ function MapView() {
 
   const handleExportToGoogleMaps = () => {
     if (!startPoint || !endPoint) {
-      window.alert("Please select both start and destination before exporting.");
+      window.alert(
+        "Please select both start and destination before exporting."
+      );
       return;
     }
 
@@ -371,7 +374,11 @@ function MapView() {
 
         {(visiblePois.length ? visiblePois : pois).map((poi) => {
           return (
-            <Marker key={poi.id} position={[poi.lat, poi.lon]} icon={poiIcon}>
+            <Marker
+              key={poi.id}
+              position={[poi.lat, poi.lon]}
+              icon={getCategoryIcon(poi.category)}
+            >
               <Popup>
                 <strong>{poi.name}</strong>
                 <br />
@@ -406,8 +413,8 @@ function MapView() {
       )}
       {poiMetadata?.truncated && (
         <div className="absolute top-20 right-4 z-[1000] bg-yellow-100 p-3 rounded-lg shadow-lg text-yellow-800 max-w-xs">
-          Showing {pois.length} places out of {poiMetadata.total}. Narrow filters
-          to see fewer.
+          Showing {pois.length} places out of {poiMetadata.total}. Narrow
+          filters to see fewer.
         </div>
       )}
     </div>

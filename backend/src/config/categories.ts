@@ -58,6 +58,34 @@ export const CATEGORY_MAPPINGS: Record<string, string[]> = {
   gift: ['node["shop"="gift"]'],
 };
 
+/**
+ * Determine the primary category for a POI based on its tags
+ */
+export function determineCategory(
+  tags: Record<string, string> | undefined
+): string {
+  if (!tags) return "other";
+
+  // Check each category definition
+  for (const [category, queries] of Object.entries(CATEGORY_MAPPINGS)) {
+    // Each query is like 'node["tourism"="attraction"]'
+    // We need to check if the tags match any of these conditions
+    for (const query of queries) {
+      // Extract key and value from query, e.g., ["tourism"="attraction"]
+      const match = query.match(/\["([^"]+)"="([^"]+)"\]/);
+      if (match) {
+        const key = match[1];
+        const value = match[2];
+        if (tags[key] === value) {
+          return category;
+        }
+      }
+    }
+  }
+
+  return "other";
+}
+
 export const CATEGORY_LABELS: Record<string, string> = {
   attraction: "Attraction",
   museum: "Museum",
