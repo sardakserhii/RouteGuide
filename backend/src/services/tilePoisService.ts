@@ -116,4 +116,108 @@ export class TilePoisService {
       throw error;
     }
   }
+
+  /**
+   * Bulk checks cache for multiple tiles.
+   * Returns POIs for cached tiles and a list of tiles that need fetching.
+   */
+  async getCachedPoisForTiles(
+    tiles: Tile[],
+    filters: PoiFilters,
+    options: { ttlDays: number }
+  ): Promise<{ cachedPois: Poi[]; missingTiles: Tile[] }> {
+    const allCategories = Object.keys(CATEGORY_MAPPINGS);
+    const allCategoriesHash = buildFiltersHash(allCategories);
+    const filtersHash = buildFiltersHash(filters.categories);
+
+    const tileIds = tiles.map((t) => t.id);
+    const cachedPois: Poi[] = [];
+    const missingTiles: Tile[] = [];
+
+    // 1. Check "all categories" cache (superset)
+    const supersetTiles = this.tilesRepo.getTilesByIds(
+      tileIds,
+      allCategoriesHash
+    );
+    const supersetTileIds = new Set<string>();
+
+    // Filter fresh superset tiles
+    const freshSupersetTiles = supersetTiles.filter((t) => {
+      const fetchedAt = new Date(t.fetched_at);
+      const diffDays =
+        (Date.now() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
+      return diffDays < options.ttlDays;
+    });
+
+    freshSupersetTiles.forEach((t) => supersetTileIds.add(t.id));
+
+    // 2. Check specific cache for remaining tiles
+    const remainingTileIds = tileIds.filter((id) => !supersetTileIds.has(id));
+    let freshSpecificTiles: any[] = [];
+
+    if (remainingTileIds.length > 0) {
+      const specificTiles = this.tilesRepo.getTilesByIds(
+        remainingTileIds,
+        filtersHash
+      );
+      freshSpecificTiles = specificTiles.filter((t) => {
+        const fetchedAt = new Date(t.fetched_at);
+        const diffDays =
+          (Date.now() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
+        return diffDays < options.ttlDays;
+      });
+    }
+
+    const specificTileIds = new Set(freshSpecificTiles.map((t: any) => t.id));
+
+    // 3. Collect POI IDs
+    // For superset tiles
+    if (freshSupersetTiles.length > 0) {
+      const links = this.tilesRepo.getAllPoisForTiles(
+        freshSupersetTiles.map((t) => t.id),
+        allCategoriesHash
+      );
+      const poiIds = links.map((l) => l.poi_id);
+      // Batch get POIs
+      // Note: getPoisByIds handles empty array, but we check length anyway
+      if (poiIds.length > 0) {
+        // We might have duplicates if multiple tiles point to same POI, but getPoisByIds returns unique POIs by ID usually?
+        // Actually getPoisByIds just does "WHERE id IN (...)" so it returns unique POIs if input IDs are unique.
+        // But links might have duplicates? No, poi_id is unique per tile?
+        // A POI can be in multiple tiles.
+        // We should deduplicate IDs before querying POIs repo to be safe and efficient.
+        const uniquePoiIds = Array.from(new Set(poiIds));
+        const pois = this.poisRepo.getPoisByIds(uniquePoiIds);
+
+        // Filter in memory
+        const filtered = pois.filter((p) =>
+          filters.categories.includes(p.category)
+        );
+        cachedPois.push(...filtered);
+      }
+    }
+
+    // For specific tiles
+    if (freshSpecificTiles.length > 0) {
+      const links = this.tilesRepo.getAllPoisForTiles(
+        freshSpecificTiles.map((t: any) => t.id),
+        filtersHash
+      );
+      const poiIds = links.map((l) => l.poi_id);
+      if (poiIds.length > 0) {
+        const uniquePoiIds = Array.from(new Set(poiIds));
+        const pois = this.poisRepo.getPoisByIds(uniquePoiIds);
+        cachedPois.push(...pois);
+      }
+    }
+
+    // 4. Identify missing tiles
+    for (const tile of tiles) {
+      if (!supersetTileIds.has(tile.id) && !specificTileIds.has(tile.id)) {
+        missingTiles.push(tile);
+      }
+    }
+
+    return { cachedPois, missingTiles };
+  }
 }

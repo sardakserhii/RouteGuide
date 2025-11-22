@@ -1,5 +1,6 @@
 (async () => {
     const axios = require("axios");
+    require("dotenv").config({ path: "../../.env" }); // Adjust path if needed, or just .env if running from root
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     try {

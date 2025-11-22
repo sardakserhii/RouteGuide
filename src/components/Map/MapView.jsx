@@ -315,6 +315,9 @@ function MapView() {
             disabled={loading}
           />
           <PoiList
+            key={`${startPoint ? startPoint.join(",") : "no-start"}-${
+              pois.length
+            }`}
             pois={pois}
             startPoint={startPoint}
             onVisibleChange={setVisiblePois}
@@ -412,7 +415,7 @@ function MapView() {
         </div>
       )}
       {poiMetadata?.truncated && (
-        <div className="absolute top-20 right-4 z-[1000] bg-yellow-100 p-3 rounded-lg shadow-lg text-yellow-800 max-w-xs">
+        <div className="absolute bottom-4 right-4 z-[1000] bg-yellow-100 p-3 rounded-lg shadow-lg text-yellow-800 max-w-xs">
           Showing {pois.length} places out of {poiMetadata.total}. Narrow
           filters to see fewer.
         </div>

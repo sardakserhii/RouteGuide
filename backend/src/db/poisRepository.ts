@@ -43,11 +43,20 @@ export class PoisRepository {
   getPoisByIds(ids: string[]): Poi[] {
     if (ids.length === 0) return [];
 
-    const placeholders = ids.map(() => "?").join(",");
-    const stmt = db.prepare(`SELECT * FROM pois WHERE id IN (${placeholders})`);
-    const rows = stmt.all(...ids) as DbPoi[];
+    const BATCH_SIZE = 900; // SQLite limit is usually 999
+    const allRows: DbPoi[] = [];
 
-    return rows.map(this.dbPoiToPoi);
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batchIds = ids.slice(i, i + BATCH_SIZE);
+      const placeholders = batchIds.map(() => "?").join(",");
+      const stmt = db.prepare(
+        `SELECT * FROM pois WHERE id IN (${placeholders})`
+      );
+      const rows = stmt.all(...batchIds) as DbPoi[];
+      allRows.push(...rows);
+    }
+
+    return allRows.map(this.dbPoiToPoi);
   }
 
   private dbPoiToPoi(row: DbPoi): Poi {

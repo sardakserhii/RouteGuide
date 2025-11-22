@@ -87,8 +87,6 @@ const PoiList = ({
       .sort((a, b) => a.distance - b.distance);
   }, [pois, startPoint]);
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
-
   const categoryOptions = useMemo(() => {
     const counts = enrichedPois.reduce((acc, poi) => {
       const key = poi.category || "other";
@@ -105,10 +103,9 @@ const PoiList = ({
       .sort((a, b) => b.count - a.count);
   }, [enrichedPois]);
 
-  // Reset selection when options change
-  useEffect(() => {
-    setSelectedCategories(categoryOptions.map((c) => c.key));
-  }, [categoryOptions]);
+  const [selectedCategories, setSelectedCategories] = useState(() =>
+    categoryOptions.map((c) => c.key)
+  );
 
   const visiblePois = useMemo(() => {
     if (selectedCategories.length === 0) return [];

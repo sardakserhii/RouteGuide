@@ -74,4 +74,47 @@ export class TilesRepository {
     );
     stmt.run(tileId, filtersHash);
   }
+
+  getTilesByIds(ids: string[], filtersHash: string): DbTile[] {
+    if (ids.length === 0) return [];
+
+    const BATCH_SIZE = 900;
+    const allRows: DbTile[] = [];
+
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batchIds = ids.slice(i, i + BATCH_SIZE);
+      const placeholders = batchIds.map(() => "?").join(",");
+      const stmt = db.prepare(
+        `SELECT * FROM tiles WHERE id IN (${placeholders}) AND filters_hash = ?`
+      );
+      // Spread ids first, then filtersHash as the last argument
+      const rows = stmt.all(...batchIds, filtersHash) as DbTile[];
+      allRows.push(...rows);
+    }
+    return allRows;
+  }
+
+  getAllPoisForTiles(
+    tileIds: string[],
+    filtersHash: string
+  ): { tile_id: string; poi_id: string }[] {
+    if (tileIds.length === 0) return [];
+
+    const BATCH_SIZE = 900;
+    const allRows: { tile_id: string; poi_id: string }[] = [];
+
+    for (let i = 0; i < tileIds.length; i += BATCH_SIZE) {
+      const batchIds = tileIds.slice(i, i + BATCH_SIZE);
+      const placeholders = batchIds.map(() => "?").join(",");
+      const stmt = db.prepare(
+        `SELECT tile_id, poi_id FROM tile_pois WHERE tile_id IN (${placeholders}) AND filters_hash = ?`
+      );
+      const rows = stmt.all(...batchIds, filtersHash) as {
+        tile_id: string;
+        poi_id: string;
+      }[];
+      allRows.push(...rows);
+    }
+    return allRows;
+  }
 }

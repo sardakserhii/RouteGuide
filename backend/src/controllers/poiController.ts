@@ -3,8 +3,9 @@ import { OverpassService } from "../services/overpassService";
 import { GeminiService } from "../services/geminiService";
 import { TilePoisService } from "../services/tilePoisService";
 import { haversineDistance, minDistanceToRoute } from "../services/geoService";
-import { getTilesForRoute } from "../utils/tiles";
+import { getTilesForRoute, Tile } from "../utils/tiles";
 import { Poi } from "../services/overpassService";
+import { interleaveCategories } from "../utils/poiUtils";
 
 interface PoisQuery {
   bbox: number[]; // [minLat, maxLat, minLng, maxLng]
@@ -40,7 +41,10 @@ export class PoiController {
     if (!route.length || limit <= 0) return [];
 
     // Build anchor points along the route (sampled vertices)
-    const targetAnchors = Math.min(30, Math.max(10, Math.floor(route.length / 8)));
+    const targetAnchors = Math.min(
+      30,
+      Math.max(10, Math.floor(route.length / 8))
+    );
     const step = Math.max(1, Math.floor(route.length / targetAnchors));
 
     const anchors: [number, number][] = [];
@@ -75,7 +79,11 @@ export class PoiController {
     // Round-robin take from each anchor group to distribute results
     const stratified: Poi[] = [];
     const maxGroup = Math.max(...grouped.map((g) => g.length));
-    for (let layer = 0; layer < maxGroup && stratified.length < limit; layer++) {
+    for (
+      let layer = 0;
+      layer < maxGroup && stratified.length < limit;
+      layer++
+    ) {
       for (const group of grouped) {
         if (stratified.length >= limit) break;
         const candidate = group[layer];
@@ -160,47 +168,68 @@ export class PoiController {
         const tiles = getTilesForRoute(route, maxDeviation);
         console.log(`[PoiController] Route covers ${tiles.length} tiles`);
 
-        // Fetch POIs for tiles in parallel batches
-        const allPois: Poi[] = [];
+        // 1. Bulk check cache
+        console.log("[PoiController] Checking cache for all tiles...");
+        const { cachedPois, missingTiles } =
+          await this.tilePoisService.getCachedPoisForTiles(
+            tiles,
+            { categories: selectedCategories, maxDistance: maxDeviation },
+            { ttlDays: POI_CACHE_TTL_DAYS }
+          );
 
-        // Process tiles in batches of PARALLEL_REQUESTS
-        for (let i = 0; i < tiles.length; i += PARALLEL_REQUESTS) {
-          const batch = tiles.slice(i, i + PARALLEL_REQUESTS);
+        const allPois: Poi[] = [...cachedPois];
+        console.log(
+          `[PoiController] Cache hit: ${cachedPois.length} POIs from ${
+            tiles.length - missingTiles.length
+          } tiles`
+        );
+        console.log(
+          `[PoiController] Missing tiles: ${missingTiles.length}/${tiles.length}`
+        );
 
-          // Add delay before each batch (except first)
-          if (i > 0 && OVERPASS_REQUEST_DELAY_MS > 0) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, OVERPASS_REQUEST_DELAY_MS)
+        // 2. Fetch missing tiles in batches
+        if (missingTiles.length > 0) {
+          // Process tiles in batches of PARALLEL_REQUESTS
+          for (let i = 0; i < missingTiles.length; i += PARALLEL_REQUESTS) {
+            const batch = missingTiles.slice(i, i + PARALLEL_REQUESTS);
+
+            // Add delay before each batch (except first)
+            if (i > 0 && OVERPASS_REQUEST_DELAY_MS > 0) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, OVERPASS_REQUEST_DELAY_MS)
+              );
+            }
+
+            // Load tiles in parallel within batch
+            const batchPromises = batch.map((tile: Tile) =>
+              this.tilePoisService
+                .loadTilePois(
+                  tile,
+                  { categories: selectedCategories, maxDistance: maxDeviation },
+                  { ttlDays: POI_CACHE_TTL_DAYS, requestDelay: 0 } // No delay within batch
+                )
+                .catch((error: any) => {
+                  console.error(
+                    `[PoiController] Error loading tile ${tile.id}:`,
+                    error.message
+                  );
+                  return []; // Return empty array on error, don't fail entire batch
+                })
+            );
+
+            const batchResults = await Promise.all(batchPromises);
+            batchResults.forEach((tilePois: Poi[]) =>
+              allPois.push(...tilePois)
+            );
+
+            console.log(
+              `[PoiController] Processed batch ${
+                Math.floor(i / PARALLEL_REQUESTS) + 1
+              }/${Math.ceil(missingTiles.length / PARALLEL_REQUESTS)} (${
+                batch.length
+              } tiles)`
             );
           }
-
-          // Load tiles in parallel within batch
-          const batchPromises = batch.map((tile) =>
-            this.tilePoisService
-              .loadTilePois(
-                tile,
-                { categories: selectedCategories, maxDistance: maxDeviation },
-                { ttlDays: POI_CACHE_TTL_DAYS, requestDelay: 0 } // No delay within batch
-              )
-              .catch((error: any) => {
-                console.error(
-                  `[PoiController] Error loading tile ${tile.id}:`,
-                  error.message
-                );
-                return []; // Return empty array on error, don't fail entire batch
-              })
-          );
-
-          const batchResults = await Promise.all(batchPromises);
-          batchResults.forEach((tilePois) => allPois.push(...tilePois));
-
-          console.log(
-            `[PoiController] Processed batch ${
-              Math.floor(i / PARALLEL_REQUESTS) + 1
-            }/${Math.ceil(tiles.length / PARALLEL_REQUESTS)} (${
-              batch.length
-            } tiles)`
-          );
         }
 
         // Deduplicate POIs by osm_id
@@ -233,7 +262,8 @@ export class PoiController {
         }
 
         // Sort by importance and distance
-        pois.sort((a, b) => {
+        // Sort function for importance and distance
+        const sortPois = (a: Poi, b: Poi) => {
           const importantTypes = [
             "castle",
             "museum",
@@ -249,7 +279,12 @@ export class PoiController {
 
           // If same importance, sort by distance
           return (a.distance || 0) - (b.distance || 0);
-        });
+        };
+
+        // Interleave categories to ensure diversity
+        // This ensures that if we have many "attractions" and few "museums",
+        // we still see some museums even if they are further away.
+        pois = interleaveCategories(pois, sortPois);
       } else {
         // Fallback to old method (direct Overpass query)
         console.log("[PoiController] Using direct Overpass query");
