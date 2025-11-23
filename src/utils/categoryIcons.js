@@ -1,3 +1,4 @@
+
 import L from "leaflet";
 
 // Fix for default marker icons in React-Leaflet
@@ -18,58 +19,66 @@ const createColorIcon = (color) => {
 // Colors available in leaflet-color-markers:
 // blue, gold, red, green, orange, yellow, violet, grey, black
 
-export const CATEGORY_ICONS = {
+const CATEGORY_COLORS = {
   // Food & Drink -> Red/Orange
-  restaurant: createColorIcon("red"),
-  cafe: createColorIcon("orange"),
-  bar: createColorIcon("red"),
-  pub: createColorIcon("red"),
-  fast_food: createColorIcon("red"),
-  food_court: createColorIcon("red"),
-  ice_cream: createColorIcon("orange"),
+  restaurant: "red",
+  cafe: "orange",
+  bar: "red",
+  pub: "red",
+  fast_food: "red",
+  food_court: "red",
+  ice_cream: "orange",
 
   // Accommodation -> Gold/Yellow
-  hotel: createColorIcon("gold"),
-  hostel: createColorIcon("gold"),
-  guest_house: createColorIcon("gold"),
-  motel: createColorIcon("gold"),
-  apartment: createColorIcon("gold"),
-  camp_site: createColorIcon("gold"),
+  hotel: "gold",
+  hostel: "gold",
+  guest_house: "gold",
+  motel: "gold",
+  apartment: "gold",
+  camp_site: "gold",
 
   // Nature & Parks -> Green
-  park: createColorIcon("green"),
-  natural: createColorIcon("green"),
-  viewpoint: createColorIcon("green"),
-  garden: createColorIcon("green"),
-  forest: createColorIcon("green"),
-  beach: createColorIcon("green"),
+  park: "green",
+  natural: "green",
+  viewpoint: "green",
+  garden: "green",
+  forest: "green",
+  beach: "green",
 
   // Culture & History -> Violet
-  museum: createColorIcon("violet"),
-  artwork: createColorIcon("violet"),
-  historic: createColorIcon("violet"),
-  monument: createColorIcon("violet"),
-  castle: createColorIcon("violet"),
-  attraction: createColorIcon("violet"),
-  theatre: createColorIcon("violet"),
-  cinema: createColorIcon("violet"),
-  arts_centre: createColorIcon("violet"),
+  museum: "violet",
+  artwork: "violet",
+  historic: "violet",
+  monument: "violet",
+  castle: "violet",
+  attraction: "violet",
+  theatre: "violet",
+  cinema: "violet",
+  arts_centre: "violet",
 
-  // Shopping -> Yellow/Orange (using yellow/gold distinct from accommodation if possible, or just orange)
-  shop: createColorIcon("yellow"),
-  supermarket: createColorIcon("yellow"),
-  mall: createColorIcon("yellow"),
-  market: createColorIcon("yellow"),
+  // Shopping -> Yellow/Orange
+  shop: "yellow",
+  supermarket: "yellow",
+  mall: "yellow",
+  market: "yellow",
 
   // Transport -> Grey
-  station: createColorIcon("grey"),
-  bus_station: createColorIcon("grey"),
-  fuel: createColorIcon("grey"),
-  parking: createColorIcon("grey"),
+  station: "grey",
+  bus_station: "grey",
+  fuel: "grey",
+  parking: "grey",
 
   // Other -> Blue (Default)
-  other: createColorIcon("blue"),
+  other: "blue",
 };
+
+export const CATEGORY_ICONS = Object.entries(CATEGORY_COLORS).reduce(
+  (acc, [category, color]) => {
+    acc[category] = createColorIcon(color);
+    return acc;
+  },
+  {}
+);
 
 export const CATEGORY_EMOJIS = {
   // Food & Drink
@@ -126,6 +135,20 @@ export const CATEGORY_EMOJIS = {
 
 export const getCategoryIcon = (category) => {
   return CATEGORY_ICONS[category] || CATEGORY_ICONS.other;
+};
+
+export const getNumberedCategoryIcon = (category, number) => {
+  const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.other;
+  return new L.DivIcon({
+    className: "custom-div-icon",
+    html: `<div style="position: relative; width: 25px; height: 41px;">
+            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png" style="width: 25px; height: 41px;">
+            <div style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; font-weight: bold; color: black; text-shadow: 0 0 2px white;">${number}</div>
+           </div>`,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
 };
 
 export const getCategoryEmoji = (category) => {

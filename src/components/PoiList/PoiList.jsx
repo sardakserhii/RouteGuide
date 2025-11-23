@@ -179,14 +179,14 @@ const PoiList = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-gray-800">
-                Places along the route
+                Step 3. Add to trip
               </h2>
               <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
                 {visiblePois.length}/{enrichedPois.length}
               </span>
             </div>
             <p className="text-xs text-gray-500">
-              Sorted by distance from your starting point
+              Select places to export to Google Maps.
             </p>
           </div>
         </div>
@@ -221,55 +221,28 @@ const PoiList = ({
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-2">
-          {isExportMode ? (
-            <>
-              <span className="text-xs text-gray-600">
-                Selected:{" "}
-                <span className="font-semibold text-gray-900">
-                  {selectedCount}
-                </span>
-                {selectedCount > 23 && (
-                  <span className="text-[11px] text-amber-700 ml-1">
-                    (max 23)
-                  </span>
-                )}
-              </span>
-              <div className="ml-auto flex flex-wrap gap-2">
-                <button
-                  onClick={() => onSelectVisible(visiblePois.map((p) => p.id))}
-                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Select All
-                </button>
-                <button
-                  onClick={handleCancelExport}
-                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmExport}
-                  className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  OK
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="ml-auto">
+          <span className="text-xs text-gray-600">
+            Selected places:{" "}
+            <span className="font-semibold text-gray-900">{selectedCount}</span>
+            {selectedCount > 23 && (
+              <span className="text-[11px] text-amber-700 ml-1">(max 23)</span>
+            )}
+          </span>
+          <div className="ml-auto flex flex-wrap gap-2">
+            {selectedCount > 0 && (
               <button
-                onClick={handleExportClick}
-                className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                onClick={onExportRoute}
+                className="text-xs px-3 py-1 rounded-full font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700"
               >
-                Export
+                Export to Google Maps ({selectedCount})
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       <div className="overflow-y-auto flex-1 p-4 space-y-4 bg-gray-50 custom-scrollbar">
-        {visiblePois.map((poi) => {
+        {visiblePois.map((poi, index) => {
           const imageUrl =
             poi.tags?.image ||
             poi.tags?.photo ||
@@ -295,7 +268,10 @@ const PoiList = ({
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-base leading-tight group-hover:text-blue-700 transition-colors">
+                      <h3 className="font-semibold text-gray-900 text-base leading-tight group-hover:text-blue-700 transition-colors flex items-center gap-2">
+                        <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                          {index + 1}
+                        </span>
                         {poi.name}
                       </h3>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -310,18 +286,19 @@ const PoiList = ({
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      {isExportMode && (
-                        <label className="flex items-center gap-1 text-[11px] text-gray-600">
-                          <input
-                            type="checkbox"
-                            checked={selectedPoiIds.includes(poi.id)}
-                            onChange={() => onTogglePoiSelection(poi.id)}
-                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                          />
-                          Select
-                        </label>
-                      )}
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => onTogglePoiSelection(poi.id)}
+                        className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                          selectedPoiIds.includes(poi.id)
+                            ? "bg-green-100 text-green-700 border border-green-200"
+                            : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"
+                        }`}
+                      >
+                        {selectedPoiIds.includes(poi.id)
+                          ? "Added ✓"
+                          : "Add to trip"}
+                      </button>
                       {poi.isTopPick && (
                         <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
                           AI TOP

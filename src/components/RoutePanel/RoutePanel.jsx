@@ -5,12 +5,17 @@ function RoutePanel({
   onSelectStart,
   onSelectEnd,
   onClear,
+  onBuildRoute,
+  routeBuilt,
 }) {
   return (
     <div className="absolute top-5 left-5 z-[1000] bg-white rounded-xl shadow-xl p-5 min-w-80 font-sans">
-      <h2 className="m-0 mb-4 text-lg font-semibold text-gray-800">
-        Build a route and explore nearby places
+      <h2 className="m-0 text-lg font-semibold text-gray-800">
+        Step 1. Build route
       </h2>
+      <p className="text-xs text-gray-500 mb-4">
+        Enter start and destination to see the path.
+      </p>
 
       {/* Start Point Section */}
       <div className="mb-4 pb-4 border-b border-gray-200">
@@ -24,7 +29,7 @@ function RoutePanel({
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
-              Not selected yet
+              Munich, address or place
             </span>
           )}
         </div>
@@ -39,7 +44,7 @@ function RoutePanel({
         >
           {selectionMode === "start"
             ? "Click on the map to set"
-            : "Select on map"}
+            : "Pick on map"}
         </button>
       </div>
 
@@ -55,7 +60,7 @@ function RoutePanel({
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
-              Not selected yet
+              Nuremberg, address or place
             </span>
           )}
         </div>
@@ -68,28 +73,35 @@ function RoutePanel({
             }`}
           onClick={onSelectEnd}
         >
-          {selectionMode === "end"
-            ? "Click on the map to set"
-            : "Select on map"}
+          {selectionMode === "end" ? "Click on the map to set" : "Pick on map"}
         </button>
       </div>
+
+      {/* Action Buttons */}
+      {!routeBuilt && (
+        <button
+          disabled={!startPoint || !endPoint}
+          className={`w-full px-4 py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-200
+              ${
+                startPoint && endPoint
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-indigo-300 hover:-translate-y-0.5"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+          onClick={onBuildRoute}
+        >
+          Build route
+        </button>
+      )}
 
       {/* Clear Button */}
       {(startPoint || endPoint) && (
         <button
-          className="w-full px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium
-                     transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-300 mt-2"
+          className="w-full px-4 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-xs font-medium
+                     transition-all duration-200 hover:bg-red-50 mt-3"
           onClick={onClear}
         >
           Clear points and filters
         </button>
-      )}
-
-      {/* Route Info */}
-      {startPoint && endPoint && (
-        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-xs font-medium text-center">
-          Calculating route and places...
-        </div>
       )}
     </div>
   );

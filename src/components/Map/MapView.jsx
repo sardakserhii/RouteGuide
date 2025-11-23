@@ -11,7 +11,10 @@ import { useState, useEffect } from "react";
 
 import { fetchRouteData, fetchPoisData } from "../../api/routeApi";
 import { startIcon, endIcon } from "../../utils/mapIcons";
-import { getCategoryIcon } from "../../utils/categoryIcons";
+import {
+  getCategoryIcon,
+  getNumberedCategoryIcon,
+} from "../../utils/categoryIcons";
 import RoutePanel from "../RoutePanel/RoutePanel";
 import PoiFilter from "../PoiFilter/PoiFilter";
 import PoiList from "../PoiList/PoiList";
@@ -46,49 +49,63 @@ function MapView() {
     "attraction",
     "museum",
     "viewpoint",
-    "monument",
-    "castle",
-    "artwork",
-    "historic",
+    "park",
   ]);
   const [maxDistance, setMaxDistance] = useState(null);
   const [useAi, setUseAi] = useState(false);
   const [poiMetadata, setPoiMetadata] = useState(null);
+  const [arePoisRequested, setArePoisRequested] = useState(false);
 
   // 1. Calculate route when start/end points change
+  // 1. Calculate route when start/end points change
   useEffect(() => {
-    if (!startPoint || !endPoint) {
-      setRoute([]);
-      setPois([]);
-      setPoiMetadata(null);
-      return;
+    if (startPoint && endPoint) {
+      handleBuildRoute();
     }
-
-    const getRoute = async () => {
-      setLoading(true);
-      setError("");
-      setPois([]);
-      setPoiMetadata(null);
-
-      try {
-        const latLngs = await fetchRouteData(startPoint, endPoint);
-        setRoute(latLngs);
-      } catch (e) {
-        console.error(e);
-        setRoute([]);
-        setError(
-          e?.message || "Unable to calculate the route. Please try again."
-        );
-        setLoading(false);
-      }
-    };
-
-    getRoute();
   }, [startPoint, endPoint]);
 
+  // 1. Handle Route Building
+  const handleBuildRoute = async () => {
+    if (!startPoint || !endPoint) return;
+
+    setLoading(true);
+    setError("");
+    setRoute([]);
+    setPois([]);
+    setPoiMetadata(null);
+    setPois([]);
+    setPoiMetadata(null);
+    setArePoisRequested(true); // Auto-request POIs
+    setVisiblePois([]);
+    setSelectedPoiIds([]);
+
+    try {
+      const latLngs = await fetchRouteData(startPoint, endPoint);
+      setRoute(latLngs);
+    } catch (e) {
+      console.error(e);
+      setRoute([]);
+      setError(
+        e?.message || "Unable to calculate the route. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clear route if points change (optional, but keeps state consistent)
+  // useEffect(() => {
+  //   setRoute([]);
+  //   setPois([]);
+  //   setPoiMetadata(null);
+  //   setArePoisRequested(false);
+  // }, [startPoint, endPoint]);
+
   // 2. Fetch POIs when route or filters change
+  // 2. Fetch POIs when requested or filters change
+
   useEffect(() => {
-    if (route.length === 0) return;
+    if (route.length === 0 || !arePoisRequested) return;
 
     const getPois = async () => {
       setLoading(true);
@@ -138,7 +155,7 @@ function MapView() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [route, selectedCategories, maxDistance, useAi]);
+  }, [route, selectedCategories, maxDistance, useAi, arePoisRequested]);
 
   useEffect(() => {
     if (pois.length === 0) {
@@ -174,17 +191,10 @@ function MapView() {
     setPoiMetadata(null);
     setSelectedPoiIds([]);
     setError("");
-    setSelectedCategories([
-      "attraction",
-      "museum",
-      "viewpoint",
-      "monument",
-      "castle",
-      "artwork",
-      "historic",
-    ]);
+    setSelectedCategories(["attraction", "museum", "viewpoint", "park"]);
     setMaxDistance(null);
     setUseAi(false);
+    setArePoisRequested(false);
   };
 
   const handleTogglePoiSelection = (poiId) => {
@@ -299,6 +309,8 @@ function MapView() {
         onSelectStart={handleSelectStart}
         onSelectEnd={handleSelectEnd}
         onClear={handleClear}
+        onBuildRoute={handleBuildRoute}
+        routeBuilt={route.length > 0}
       />
 
       {route.length > 0 && (
@@ -313,6 +325,7 @@ function MapView() {
             poiCount={pois.length}
             totalCount={poiMetadata?.total || pois.length}
             disabled={loading}
+            onApply={() => setArePoisRequested(true)}
           />
           <PoiList
             key={`${startPoint ? startPoint.join(",") : "no-start"}-${
@@ -375,12 +388,12 @@ function MapView() {
           <Polyline positions={route} color="#2563eb" weight={4} />
         )}
 
-        {(visiblePois.length ? visiblePois : pois).map((poi) => {
+        {(visiblePois.length ? visiblePois : pois).map((poi, index) => {
           return (
             <Marker
               key={poi.id}
               position={[poi.lat, poi.lon]}
-              icon={getCategoryIcon(poi.category)}
+              icon={getNumberedCategoryIcon(poi.category, index + 1)}
             >
               <Popup>
                 <strong>{poi.name}</strong>
