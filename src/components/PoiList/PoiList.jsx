@@ -1,26 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getCategoryEmoji } from "../../utils/categoryIcons";
-
-const CATEGORY_LABELS = {
-  attraction: "Attraction",
-  museum: "Museum",
-  viewpoint: "Viewpoint",
-  monument: "Monument",
-  castle: "Castle",
-  artwork: "Artwork",
-  historic: "Historic",
-  hotel: "Hotel",
-  hostel: "Hostel",
-  guest_house: "Guest house",
-  restaurant: "Restaurant",
-  cafe: "Cafe",
-  bar: "Bar",
-  pub: "Pub",
-  park: "Park",
-  natural: "Nature",
-  shop: "Shop",
-  other: "Other",
-};
 
 // Helper to calculate distance between two points in km
 function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -94,6 +74,7 @@ const PoiList = ({
   onClearSelection = () => {},
   onExportRoute = () => {},
 }) => {
+  const { t } = useTranslation();
   const enrichedPois = useMemo(() => {
     if (!startPoint || !pois || pois.length === 0) return [];
 
@@ -123,7 +104,7 @@ const PoiList = ({
     return Array.from(counts.entries())
       .map(([key, count]) => ({
         key,
-        label: CATEGORY_LABELS[key] || key,
+        label: t(`categories.${key}`, key),
         count,
       }))
       .sort((a, b) => b.count - a.count);
@@ -191,15 +172,13 @@ const PoiList = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-gray-800">
-                Step 3. Add to trip
+                {t("poiList.title")}
               </h2>
               <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
                 {visiblePois.length}/{enrichedPois.length}
               </span>
             </div>
-            <p className="text-xs text-gray-500">
-              Select places to export to Google Maps.
-            </p>
+            <p className="text-xs text-gray-500">{t("poiList.subtitle")}</p>
           </div>
         </div>
 
@@ -246,7 +225,7 @@ const PoiList = ({
                 onClick={onExportRoute}
                 className="text-xs px-3 py-1 rounded-full font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700"
               >
-                Export to Google Maps ({selectedCount})
+                {t("poiList.exportToGoogleMaps")} ({selectedCount})
               </button>
             )}
           </div>
@@ -289,9 +268,10 @@ const PoiList = ({
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 flex items-center gap-1">
                           <span>{getCategoryEmoji(poi.category)}</span>
-                          {CATEGORY_LABELS[poi.category] ||
-                            poi.category ||
-                            "Other"}
+                          {t(
+                            `categories.${poi.category}`,
+                            poi.category || "Other"
+                          )}
                         </span>
                         <span className="text-xs text-gray-500">
                           {poi.distance.toFixed(1)} km from start
@@ -308,8 +288,8 @@ const PoiList = ({
                         }`}
                       >
                         {selectedPoiIds.includes(poi.id)
-                          ? "Added ✓"
-                          : "Add to trip"}
+                          ? t("poiList.added")
+                          : t("poiList.addToTrip")}
                       </button>
                       {poi.isTopPick && (
                         <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">

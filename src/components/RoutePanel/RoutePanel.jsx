@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { reverseGeocode } from "../../services/geocodingService";
 
 function RoutePanel({
@@ -11,6 +12,7 @@ function RoutePanel({
   onBuildRoute,
   routeBuilt,
 }) {
+  const { t } = useTranslation();
   const [startLocationName, setStartLocationName] = useState(null);
   const [endLocationName, setEndLocationName] = useState(null);
   const [geocodingStart, setGeocodingStart] = useState(false);
@@ -59,22 +61,22 @@ function RoutePanel({
   return (
     <div className="absolute top-5 left-5 z-[1000] bg-white rounded-xl shadow-xl p-5 min-w-80 font-sans">
       <h2 className="m-0 text-lg font-semibold text-gray-800">
-        Step 1. Build route
+        {t("routePanel.title")}
       </h2>
-      <p className="text-xs text-gray-500 mb-4">
-        Enter start and destination to see the path.
-      </p>
+      <p className="text-xs text-gray-500 mb-4">{t("routePanel.subtitle")}</p>
 
       {/* Start Point Section */}
       <div className="mb-4 pb-4 border-b border-gray-200">
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-600 mb-1">
-            Start point
+            {t("routePanel.startPoint")}
           </label>
           {startPoint ? (
             <span className="block text-xs text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
               {geocodingStart ? (
-                <span className="italic">Loading location...</span>
+                <span className="italic">
+                  {t("routePanel.loadingLocation")}
+                </span>
               ) : (
                 startLocationName ||
                 `${startPoint[0].toFixed(5)}, ${startPoint[1].toFixed(5)}`
@@ -82,7 +84,7 @@ function RoutePanel({
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
-              Munich, address or place
+              {t("routePanel.startPlaceholder")}
             </span>
           )}
         </div>
@@ -96,8 +98,8 @@ function RoutePanel({
           onClick={onSelectStart}
         >
           {selectionMode === "start"
-            ? "Click on the map to set"
-            : "Pick on map"}
+            ? t("routePanel.clickToSet")
+            : t("routePanel.pickOnMap")}
         </button>
       </div>
 
@@ -105,12 +107,14 @@ function RoutePanel({
       <div className="mb-4 pb-4">
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-600 mb-1">
-            Destination
+            {t("routePanel.destination")}
           </label>
           {endPoint ? (
             <span className="block text-xs text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
               {geocodingEnd ? (
-                <span className="italic">Loading location...</span>
+                <span className="italic">
+                  {t("routePanel.loadingLocation")}
+                </span>
               ) : (
                 endLocationName ||
                 `${endPoint[0].toFixed(5)}, ${endPoint[1].toFixed(5)}`
@@ -118,7 +122,7 @@ function RoutePanel({
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
-              Nuremberg, address or place
+              {t("routePanel.endPlaceholder")}
             </span>
           )}
         </div>
@@ -131,14 +135,16 @@ function RoutePanel({
             }`}
           onClick={onSelectEnd}
         >
-          {selectionMode === "end" ? "Click on the map to set" : "Pick on map"}
+          {selectionMode === "end"
+            ? t("routePanel.clickToSet")
+            : t("routePanel.pickOnMap")}
         </button>
       </div>
 
       {/* Example text */}
       <div className="mb-4 text-center">
         <span className="text-xs text-gray-400 italic">
-          Example: Munich → Nuremberg
+          {t("routePanel.exampleRoute")}
         </span>
       </div>
 
@@ -154,7 +160,7 @@ function RoutePanel({
               }`}
           onClick={onBuildRoute}
         >
-          Build route
+          {t("routePanel.buildRoute")}
         </button>
       )}
 
@@ -165,7 +171,7 @@ function RoutePanel({
                      transition-all duration-200 hover:bg-red-50 mt-3"
           onClick={onClear}
         >
-          Clear points and filters
+          {t("routePanel.clearPoints")}
         </button>
       )}
     </div>

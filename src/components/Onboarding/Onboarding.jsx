@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 const Onboarding = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("routeguide_visited");
@@ -23,11 +25,9 @@ const Onboarding = () => {
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">👋</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to RouteGuide!
+            {t("onboarding.welcome")}
           </h2>
-          <p className="text-gray-600">
-            Plan your perfect trip in 3 simple steps:
-          </p>
+          <p className="text-gray-600">{t("onboarding.subtitle")}</p>
         </div>
 
         <div className="space-y-4 mb-8">
@@ -36,9 +36,11 @@ const Onboarding = () => {
               1
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Enter route</h3>
+              <h3 className="font-semibold text-gray-900">
+                {t("onboarding.step1Title")}
+              </h3>
               <p className="text-sm text-gray-600">
-                Pick start and destination (e.g. Munich → Nuremberg).
+                {t("onboarding.step1Desc")}
               </p>
             </div>
           </div>
@@ -48,9 +50,11 @@ const Onboarding = () => {
               2
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Choose places</h3>
+              <h3 className="font-semibold text-gray-900">
+                {t("onboarding.step2Title")}
+              </h3>
               <p className="text-sm text-gray-600">
-                Select categories and find interesting spots along the way.
+                {t("onboarding.step2Desc")}
               </p>
             </div>
           </div>
@@ -60,9 +64,11 @@ const Onboarding = () => {
               3
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Add to trip</h3>
+              <h3 className="font-semibold text-gray-900">
+                {t("onboarding.step3Title")}
+              </h3>
               <p className="text-sm text-gray-600">
-                Select your favorites and open them directly in Google Maps.
+                {t("onboarding.step3Desc")}
               </p>
             </div>
           </div>
@@ -72,7 +78,7 @@ const Onboarding = () => {
           onClick={handleDismiss}
           className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-lg hover:shadow-blue-300 transform hover:-translate-y-0.5"
         >
-          Got it, let's go!
+          {t("onboarding.buttonStart")}
         </button>
       </div>
     </div>

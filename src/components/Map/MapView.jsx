@@ -18,6 +18,7 @@ import {
 import RoutePanel from "../RoutePanel/RoutePanel";
 import PoiFilter from "../PoiFilter/PoiFilter";
 import PoiList from "../PoiList/PoiList";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import { buildGoogleMapsDirectionsUrl } from "../../utils/buildGoogleMapsDirectionsUrl";
 
 // Component to handle map clicks
@@ -302,6 +303,8 @@ function MapView() {
 
   return (
     <div className="h-screen w-screen relative">
+      <LanguageSwitcher />
+
       <RoutePanel
         startPoint={startPoint}
         endPoint={endPoint}

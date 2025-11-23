@@ -1,47 +1,39 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-const CATEGORY_LABELS = {
-  // Tourism
-  attraction: "Attraction",
-  museum: "Museum",
-  viewpoint: "Viewpoint",
-  hotel: "Hotel",
-  hostel: "Hostel",
-  guest_house: "Guest house",
-  camp_site: "Camp site",
-  theme_park: "Theme park",
-  zoo: "Zoo",
-
-  // Historic
-  monument: "Monument",
-  memorial: "Memorial",
-  castle: "Castle",
-  ruins: "Ruins",
-  archaeological_site: "Archaeological site",
-
-  // Nature
-  peak: "Peak",
-  beach: "Beach",
-  cave: "Cave entrance",
-  cliff: "Cliff",
-  water: "Water feature",
-  park: "Park",
-
-  // Amenity
-  restaurant: "Restaurant",
-  cafe: "Cafe",
-  bar: "Bar",
-  pub: "Pub",
-  fast_food: "Fast food",
-  cinema: "Cinema",
-  theatre: "Theatre",
-  arts_centre: "Arts centre",
-
-  // Shop
-  mall: "Shopping mall",
-  souvenir: "Souvenir shop",
-  gift: "Gift shop",
-};
+const ALL_CATEGORIES = [
+  "attraction",
+  "museum",
+  "viewpoint",
+  "hotel",
+  "hostel",
+  "guest_house",
+  "camp_site",
+  "theme_park",
+  "zoo",
+  "monument",
+  "memorial",
+  "castle",
+  "ruins",
+  "archaeological_site",
+  "peak",
+  "beach",
+  "cave",
+  "cliff",
+  "water",
+  "park",
+  "restaurant",
+  "cafe",
+  "bar",
+  "pub",
+  "fast_food",
+  "cinema",
+  "theatre",
+  "arts_centre",
+  "mall",
+  "souvenir",
+  "gift",
+];
 
 const POPULAR_CATEGORIES = [
   "attraction",
@@ -53,7 +45,7 @@ const POPULAR_CATEGORIES = [
 ];
 
 const PoiFilter = ({
-  availableCategories = Object.keys(CATEGORY_LABELS),
+  availableCategories = ALL_CATEGORIES,
   selectedCategories,
   onCategoriesChange,
   maxDistance,
@@ -65,6 +57,7 @@ const PoiFilter = ({
   disabled,
   onApply,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAllCategories, setShowAllCategories] = useState(false);
 
@@ -125,7 +118,9 @@ const PoiFilter = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-800">Step 2. Choose places</h3>
+          <h3 className="font-semibold text-gray-800">
+            {t("poiFilter.title")}
+          </h3>
           {poiCount !== undefined && (
             <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
               {poiCount}
@@ -138,7 +133,7 @@ const PoiFilter = ({
       </div>
       {isExpanded && (
         <div className="px-4 pt-2 text-xs text-gray-500">
-          Select categories and filters.
+          {t("poiFilter.subtitle")}
         </div>
       )}
 
@@ -151,10 +146,12 @@ const PoiFilter = ({
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium text-gray-700">
-                How far from route?
+                {t("poiFilter.distanceLabel")}
               </label>
               <span className="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                {pendingMaxDistance ? `${pendingMaxDistance} km` : "Auto"}
+                {pendingMaxDistance
+                  ? `${pendingMaxDistance} km`
+                  : t("poiFilter.distanceAuto")}
               </span>
             </div>
 
@@ -172,7 +169,9 @@ const PoiFilter = ({
                 }}
                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-600">Set custom distance</span>
+              <span className="text-sm text-gray-600">
+                {t("poiFilter.setCustomDistance")}
+              </span>
             </label>
 
             <div className="relative mb-5">
@@ -189,7 +188,7 @@ const PoiFilter = ({
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                <span>On route</span>
+                <span>{t("poiFilter.onRoute")}</span>
                 <span>+5 km</span>
                 <span>+20 km</span>
               </div>
@@ -203,10 +202,10 @@ const PoiFilter = ({
                 <span className="text-lg">?</span>
                 <div>
                   <h4 className="text-sm font-semibold text-indigo-900">
-                    Show only most interesting places (AI)
+                    {t("poiFilter.aiTitle")}
                   </h4>
                   <p className="text-xs text-indigo-600">
-                    Gemini picks highlights for you
+                    {t("poiFilter.aiSubtitle")}
                   </p>
                 </div>
               </div>
@@ -227,7 +226,7 @@ const PoiFilter = ({
             {/* Header guidance text */}
             <div className="mb-3">
               <h4 className="text-sm font-medium text-gray-700 mb-2">
-                What would you like to see along the way?
+                {t("poiFilter.categoryQuestion")}
               </h4>
             </div>
 
@@ -240,7 +239,7 @@ const PoiFilter = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
               >
                 <span>🏛️</span>
-                Classic Sights
+                {t("poiFilter.presetClassic")}
               </button>
               <button
                 onClick={() =>
@@ -249,7 +248,7 @@ const PoiFilter = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
               >
                 <span>🌲</span>
-                Nature
+                {t("poiFilter.presetNature")}
               </button>
               <button
                 onClick={() =>
@@ -258,27 +257,27 @@ const PoiFilter = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
               >
                 <span>🛏️</span>
-                Accommodation
+                {t("poiFilter.presetAccommodation")}
               </button>
             </div>
 
             <div className="flex justify-between items-center mb-3">
               <label className="text-sm font-medium text-gray-700">
-                Categories
+                {t("poiFilter.categoriesLabel")}
               </label>
               <div className="flex gap-2 text-xs">
                 <button
                   onClick={handleSelectAll}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  Select all
+                  {t("poiFilter.selectAll")}
                 </button>
                 <span className="text-gray-300">|</span>
                 <button
                   onClick={handleClearAll}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  Clear
+                  {t("poiFilter.clear")}
                 </button>
               </div>
             </div>
@@ -301,7 +300,7 @@ const PoiFilter = ({
                     className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700">
-                    {CATEGORY_LABELS[category] || category}
+                    {t(`categories.${category}`, category)}
                   </span>
                 </label>
               ))}
@@ -311,8 +310,8 @@ const PoiFilter = ({
               className="mt-2 text-xs text-blue-600 font-medium hover:underline"
             >
               {showAllCategories
-                ? "Show less categories"
-                : "Show all categories"}
+                ? t("poiFilter.showLessCategories")
+                : t("poiFilter.showAllCategories")}
             </button>
           </div>
 
@@ -321,14 +320,17 @@ const PoiFilter = ({
               onClick={handleApply}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700`}
             >
-              Show places
+              {t("poiFilter.showPlaces")}
             </button>
           </div>
 
           {/* Status Footer */}
           {totalCount > 0 && (
             <div className="pt-3 border-t border-gray-100 text-xs text-center text-gray-500">
-              Showing {poiCount} of {totalCount} places
+              {t("poiFilter.showingPlaces", {
+                count: poiCount,
+                total: totalCount,
+              })}
             </div>
           )}
         </div>
