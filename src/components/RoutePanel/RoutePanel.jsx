@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { reverseGeocode } from "../../services/geocodingService";
+
 function RoutePanel({
   startPoint,
   endPoint,
@@ -8,6 +11,51 @@ function RoutePanel({
   onBuildRoute,
   routeBuilt,
 }) {
+  const [startLocationName, setStartLocationName] = useState(null);
+  const [endLocationName, setEndLocationName] = useState(null);
+  const [geocodingStart, setGeocodingStart] = useState(false);
+  const [geocodingEnd, setGeocodingEnd] = useState(false);
+
+  // Geocode start point when it changes
+  useEffect(() => {
+    if (startPoint) {
+      setGeocodingStart(true);
+      reverseGeocode(startPoint[0], startPoint[1])
+        .then((name) => {
+          setStartLocationName(name);
+          setGeocodingStart(false);
+        })
+        .catch(() => {
+          setStartLocationName(
+            `${startPoint[0].toFixed(5)}, ${startPoint[1].toFixed(5)}`
+          );
+          setGeocodingStart(false);
+        });
+    } else {
+      setStartLocationName(null);
+    }
+  }, [startPoint]);
+
+  // Geocode end point when it changes
+  useEffect(() => {
+    if (endPoint) {
+      setGeocodingEnd(true);
+      reverseGeocode(endPoint[0], endPoint[1])
+        .then((name) => {
+          setEndLocationName(name);
+          setGeocodingEnd(false);
+        })
+        .catch(() => {
+          setEndLocationName(
+            `${endPoint[0].toFixed(5)}, ${endPoint[1].toFixed(5)}`
+          );
+          setGeocodingEnd(false);
+        });
+    } else {
+      setEndLocationName(null);
+    }
+  }, [endPoint]);
+
   return (
     <div className="absolute top-5 left-5 z-[1000] bg-white rounded-xl shadow-xl p-5 min-w-80 font-sans">
       <h2 className="m-0 text-lg font-semibold text-gray-800">
@@ -24,8 +72,13 @@ function RoutePanel({
             Start point
           </label>
           {startPoint ? (
-            <span className="block text-xs font-mono text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
-              {startPoint[0].toFixed(5)}, {startPoint[1].toFixed(5)}
+            <span className="block text-xs text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
+              {geocodingStart ? (
+                <span className="italic">Loading location...</span>
+              ) : (
+                startLocationName ||
+                `${startPoint[0].toFixed(5)}, ${startPoint[1].toFixed(5)}`
+              )}
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
@@ -55,8 +108,13 @@ function RoutePanel({
             Destination
           </label>
           {endPoint ? (
-            <span className="block text-xs font-mono text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
-              {endPoint[0].toFixed(5)}, {endPoint[1].toFixed(5)}
+            <span className="block text-xs text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-md mb-2">
+              {geocodingEnd ? (
+                <span className="italic">Loading location...</span>
+              ) : (
+                endLocationName ||
+                `${endPoint[0].toFixed(5)}, ${endPoint[1].toFixed(5)}`
+              )}
             </span>
           ) : (
             <span className="block text-xs text-gray-400 italic mb-2">
@@ -75,6 +133,13 @@ function RoutePanel({
         >
           {selectionMode === "end" ? "Click on the map to set" : "Pick on map"}
         </button>
+      </div>
+
+      {/* Example text */}
+      <div className="mb-4 text-center">
+        <span className="text-xs text-gray-400 italic">
+          Example: Munich → Nuremberg
+        </span>
       </div>
 
       {/* Action Buttons */}

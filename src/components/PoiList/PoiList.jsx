@@ -133,6 +133,18 @@ const PoiList = ({
     categoryOptions.map((c) => c.key)
   );
 
+  // Automatically add new categories when they appear
+  useEffect(() => {
+    const currentCategoryKeys = categoryOptions.map((c) => c.key);
+    const newCategories = currentCategoryKeys.filter(
+      (key) => !selectedCategories.includes(key)
+    );
+
+    if (newCategories.length > 0) {
+      setSelectedCategories((current) => [...current, ...newCategories]);
+    }
+  }, [categoryOptions]);
+
   const [isExportMode, setIsExportMode] = useState(false);
 
   const visiblePois = useMemo(() => {

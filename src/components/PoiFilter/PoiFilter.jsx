@@ -224,6 +224,44 @@ const PoiFilter = ({
 
           {/* Categories Filter */}
           <div className="mb-4">
+            {/* Header guidance text */}
+            <div className="mb-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                What would you like to see along the way?
+              </h4>
+            </div>
+
+            {/* Preset buttons */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                onClick={() =>
+                  setPendingCategories(["attraction", "museum", "viewpoint"])
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                <span>🏛️</span>
+                Classic Sights
+              </button>
+              <button
+                onClick={() =>
+                  setPendingCategories(["viewpoint", "park", "peak"])
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                <span>🌲</span>
+                Nature
+              </button>
+              <button
+                onClick={() =>
+                  setPendingCategories(["hotel", "hostel", "camp_site"])
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                <span>🛏️</span>
+                Accommodation
+              </button>
+            </div>
+
             <div className="flex justify-between items-center mb-3">
               <label className="text-sm font-medium text-gray-700">
                 Categories
