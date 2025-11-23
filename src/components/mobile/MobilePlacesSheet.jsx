@@ -162,21 +162,21 @@ function MobilePlacesSheet({ routeLogic }) {
                                             {description}
                                         </p>
                                     )}
+                                </div>
 
-                                    {/* Action Button */}
+                                {/* Action Button */}
+                                <div className="shrink-0">
                                     <button
                                         onClick={() =>
                                             handleTogglePoiSelection(poi.id)
                                         }
-                                        className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
                                             isSelected
                                                 ? "bg-green-100 text-green-700 border border-green-200"
                                                 : "bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"
                                         }`}
                                     >
-                                        {isSelected
-                                            ? t("poiList.added")
-                                            : t("poiList.addToTrip")}
+                                        {isSelected ? "✓" : "+"}
                                     </button>
                                 </div>
                             </div>
