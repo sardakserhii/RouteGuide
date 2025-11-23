@@ -55,6 +55,7 @@ i18n.use(LanguageDetector)
                     poiFilter: {
                         title: "Schritt 2. Orte auswählen",
                         subtitle: "Wählen Sie Kategorien und Filter.",
+                        reset: "Zurücksetzen",
                         distanceLabel: "Wie weit von der Route?",
                         distanceAuto: "Auto",
                         setCustomDistance: "Eigene Entfernung festlegen",
@@ -71,6 +72,7 @@ i18n.use(LanguageDetector)
                         showAllCategories: "Alle Kategorien anzeigen",
                         showLessCategories: "Weniger Kategorien anzeigen",
                         showPlaces: "Orte anzeigen",
+                        loading: "Lädt...",
                         showingPlaces: "Zeige {{count}} von {{total}} Orten",
                     },
                     poiList: {
@@ -167,6 +169,7 @@ i18n.use(LanguageDetector)
                     poiFilter: {
                         title: "Step 2. Choose places",
                         subtitle: "Select categories and filters.",
+                        reset: "Reset",
                         distanceLabel: "How far from route?",
                         distanceAuto: "Auto",
                         setCustomDistance: "Set custom distance",
@@ -184,6 +187,7 @@ i18n.use(LanguageDetector)
                         showAllCategories: "Show all categories",
                         showLessCategories: "Show less categories",
                         showPlaces: "Show places",
+                        loading: "Loading...",
                         showingPlaces: "Showing {{count}} of {{total}} places",
                     },
                     poiList: {
@@ -281,6 +285,7 @@ i18n.use(LanguageDetector)
                     poiFilter: {
                         title: "Шаг 2. Выбрать места",
                         subtitle: "Выберите категории и фильтры.",
+                        reset: "Сбросить",
                         distanceLabel: "Как далеко от маршрута?",
                         distanceAuto: "Авто",
                         setCustomDistance: "Установить расстояние",
@@ -297,6 +302,7 @@ i18n.use(LanguageDetector)
                         showAllCategories: "Показать все категории",
                         showLessCategories: "Показать меньше категорий",
                         showPlaces: "Показать места",
+                        loading: "Загрузка...",
                         showingPlaces: "Показано {{count}} из {{total}} мест",
                     },
                     poiList: {
@@ -393,6 +399,7 @@ i18n.use(LanguageDetector)
                     poiFilter: {
                         title: "Крок 2. Вибрати місця",
                         subtitle: "Виберіть категорії та фільтри.",
+                        reset: "Скинути",
                         distanceLabel: "Як далеко від маршруту?",
                         distanceAuto: "Авто",
                         setCustomDistance: "Встановити відстань",
@@ -409,6 +416,7 @@ i18n.use(LanguageDetector)
                         showAllCategories: "Показати всі категорії",
                         showLessCategories: "Показати менше категорій",
                         showPlaces: "Показати місця",
+                        loading: "Завантаження...",
                         showingPlaces: "Показано {{count}} з {{total}} місць",
                     },
                     poiList: {

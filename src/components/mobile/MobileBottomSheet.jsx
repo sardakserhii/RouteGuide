@@ -120,6 +120,7 @@ function MobileBottomSheet({ routeLogic }) {
                         <MobileFilterSheet
                             routeLogic={routeLogic}
                             onComplete={() => setActiveTab("places")}
+                            onBack={() => setActiveTab("route")}
                         />
                     )}
                     {activeTab === "places" && (
