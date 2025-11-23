@@ -70,7 +70,11 @@ export class GeminiService {
 
     const diversified: Poi[] = [];
     const maxGroup = Math.max(...grouped.map((g) => g.length));
-    for (let layer = 0; layer < maxGroup && diversified.length < limit; layer++) {
+    for (
+      let layer = 0;
+      layer < maxGroup && diversified.length < limit;
+      layer++
+    ) {
       for (const group of grouped) {
         if (diversified.length >= limit) break;
         const candidate = group[layer];
@@ -99,6 +103,48 @@ export class GeminiService {
     });
   }
 
+  private calculateCategoryDistribution(
+    pois: Poi[],
+    totalTarget: number
+  ): Record<string, number> {
+    const categoryCounts: Record<string, number> = {};
+    pois.forEach((p) => {
+      const cat = p.category || "unknown";
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+
+    const categories = Object.keys(categoryCounts);
+    if (categories.length === 0) return {};
+
+    const targetPerCategory = Math.floor(totalTarget / categories.length);
+    const distribution: Record<string, number> = {};
+    let remainingSlots = totalTarget;
+
+    // First pass: allocate base amount
+    categories.forEach((cat) => {
+      const available = categoryCounts[cat];
+      const allocate = Math.min(available, targetPerCategory);
+      distribution[cat] = allocate;
+      remainingSlots -= allocate;
+    });
+
+    // Second pass: distribute remaining slots to categories that have availability
+    while (remainingSlots > 0) {
+      let allocatedInLoop = false;
+      for (const cat of categories) {
+        if (remainingSlots <= 0) break;
+        if (distribution[cat] < categoryCounts[cat]) {
+          distribution[cat]++;
+          remainingSlots--;
+          allocatedInLoop = true;
+        }
+      }
+      if (!allocatedInLoop) break; // No more items available to fill slots
+    }
+
+    return distribution;
+  }
+
   async filterPois(
     pois: Poi[],
     route?: [number, number][]
@@ -112,7 +158,7 @@ export class GeminiService {
 
     try {
       const AI_TARGET_RESULTS = 10;
-      const AI_CANDIDATE_POOL = 80;
+      const AI_CANDIDATE_POOL = 50; // Reduced from 80 for performance
 
       // Preprocess data for AI: keep only essential fields
       const diversifiedPois = this.diversifyPois(
@@ -121,35 +167,32 @@ export class GeminiService {
         AI_CANDIDATE_POOL
       );
 
+      // Calculate desired distribution
+      const distribution = this.calculateCategoryDistribution(
+        diversifiedPois,
+        AI_TARGET_RESULTS
+      );
+      const distributionPrompt = Object.entries(distribution)
+        .map(([cat, count]) => `${count} ${cat}s`)
+        .join(", ");
+
+      // Optimize payload: minimal fields, no whitespace in JSON
       const simplifiedPois = diversifiedPois.map((p) => ({
         id: p.id,
         name: p.name,
-        tags: {
-          tourism: p.tags.tourism,
-          historic: p.tags.historic,
-          amenity: p.tags.amenity,
-          description: p.tags.description,
-        },
-        lat: p.lat,
-        lon: p.lon,
+        category: p.category || "unknown",
+        lat: Number(p.lat.toFixed(5)), // Reduce precision to save tokens
+        lon: Number(p.lon.toFixed(5)),
       }));
 
-      const dataStr = JSON.stringify(simplifiedPois);
+      const dataStr = JSON.stringify(simplifiedPois); // Minified by default
 
       const prompt = `
-      You are curating highlights for a road trip. I have Points of Interest (POI) from OpenStreetMap with coordinates.
-      Pick ${AI_TARGET_RESULTS} places that are worth a stop AND keep them spread along the whole route
-      (avoid choosing many items in the same town). Prefer unique, historic, or visually impressive locations;
-      only pick shops/banks if they are famous landmarks.
-      
-      Return the answer STRICTLY in JSON format:
-      [
-          {
-              "id": "id from source data (keep as number or string exactly as input)",
-              "name": "Name",
-              "description": "Why it is worth visiting (1-2 sentences). Mention specific details if available."
-          }
-      ]
+      Select exactly ${AI_TARGET_RESULTS} stops for a road trip from the provided list.
+      Target distribution: ${distributionPrompt}.
+      Ensure they are spread along the route.
+      Return JSON ONLY:
+      [{"id": "id", "name": "name", "description": "Short reason (1 sentence)"}]
       
       Data:
       ${dataStr}
@@ -183,11 +226,7 @@ export class GeminiService {
         .filter((p: any) => p !== null);
 
       if (route && mergedPois.length > 0) {
-        mergedPois = this.diversifyPois(
-          mergedPois,
-          route,
-          mergedPois.length
-        );
+        mergedPois = this.diversifyPois(mergedPois, route, mergedPois.length);
       }
 
       return mergedPois;

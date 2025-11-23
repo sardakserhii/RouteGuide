@@ -107,6 +107,8 @@ const PoiList = ({
     categoryOptions.map((c) => c.key)
   );
 
+  const [isExportMode, setIsExportMode] = useState(false);
+
   const visiblePois = useMemo(() => {
     if (selectedCategories.length === 0) return [];
     return enrichedPois.filter((poi) =>
@@ -117,6 +119,27 @@ const PoiList = ({
   useEffect(() => {
     onVisibleChange(visiblePois);
   }, [visiblePois, onVisibleChange]);
+
+  // Reset export mode when POIs change or selection is cleared
+  useEffect(() => {
+    if (selectedPoiIds.length === 0 && !isExportMode) {
+      // Optional: logic if needed when selection clears outside of export mode
+    }
+  }, [selectedPoiIds, isExportMode]);
+
+  const handleExportClick = () => {
+    setIsExportMode(true);
+  };
+
+  const handleCancelExport = () => {
+    setIsExportMode(false);
+    onClearSelection();
+  };
+
+  const handleConfirmExport = () => {
+    onExportRoute();
+    setIsExportMode(false);
+  };
 
   if (!pois || pois.length === 0) return null;
 
@@ -172,35 +195,50 @@ const PoiList = ({
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-2">
-          <span className="text-xs text-gray-600">
-            Selected for export:{" "}
-            <span className="font-semibold text-gray-900">{selectedCount}</span>
-            {selectedCount > 23 && (
-              <span className="text-[11px] text-amber-700 ml-1">
-                (only first 23 will be sent)
+          {isExportMode ? (
+            <>
+              <span className="text-xs text-gray-600">
+                Selected:{" "}
+                <span className="font-semibold text-gray-900">
+                  {selectedCount}
+                </span>
+                {selectedCount > 23 && (
+                  <span className="text-[11px] text-amber-700 ml-1">
+                    (max 23)
+                  </span>
+                )}
               </span>
-            )}
-          </span>
-          <div className="ml-auto flex flex-wrap gap-2">
-            <button
-              onClick={() => onSelectVisible(visiblePois.map((p) => p.id))}
-              className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Select shown
-            </button>
-            <button
-              onClick={onClearSelection}
-              className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              onClick={onExportRoute}
-              className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Open in Google Maps
-            </button>
-          </div>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <button
+                  onClick={() => onSelectVisible(visiblePois.map((p) => p.id))}
+                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleCancelExport}
+                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmExport}
+                  className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  OK
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="ml-auto">
+              <button
+                onClick={handleExportClick}
+                className="text-xs px-3 py-1 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Export
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -227,7 +265,7 @@ const PoiList = ({
                 {/* Image Placeholder or Real Image */}
                 <div
                   className={` ${
-                    imageUrl ? "block" : "hidden"
+                    poi.tags?.image ? "block" : "hidden"
                   } w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative shadow-inner`}
                 >
                   {imageUrl ? (
@@ -271,15 +309,17 @@ const PoiList = ({
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <label className="flex items-center gap-1 text-[11px] text-gray-600">
-                        <input
-                          type="checkbox"
-                          checked={selectedPoiIds.includes(poi.id)}
-                          onChange={() => onTogglePoiSelection(poi.id)}
-                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                        />
-                        Select
-                      </label>
+                      {isExportMode && (
+                        <label className="flex items-center gap-1 text-[11px] text-gray-600">
+                          <input
+                            type="checkbox"
+                            checked={selectedPoiIds.includes(poi.id)}
+                            onChange={() => onTogglePoiSelection(poi.id)}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          Select
+                        </label>
+                      )}
                       {poi.isTopPick && (
                         <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
                           AI TOP
