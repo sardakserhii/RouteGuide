@@ -225,7 +225,11 @@ const PoiList = ({
             >
               <div className="flex gap-3">
                 {/* Image Placeholder or Real Image */}
-                <div className="w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative shadow-inner">
+                <div
+                  className={` ${
+                    imageUrl ? "block" : "hidden"
+                  } w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative shadow-inner`}
+                >
                   {imageUrl ? (
                     <img
                       src={imageUrl}
