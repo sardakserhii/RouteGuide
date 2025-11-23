@@ -79,6 +79,15 @@ i18n
             selectCategories: 'Wählen Sie Kategorien im Filter oben aus.',
             kmFromRoute: '{{distance}} km von der Route',
           },
+          mobileNav: {
+            route: 'Route',
+            filters: 'Filter',
+            places: 'Orte',
+          },
+          mobile: {
+            useMyLocation: 'Mein Standort',
+            locating: 'Bestimme...',
+          },
           categories: {
             attraction: 'Attraktion',
             museum: 'Museum',
@@ -171,6 +180,15 @@ i18n
             noPlaces: 'No places found',
             selectCategories: 'Select categories in the filter above.',
             kmFromRoute: '{{distance}} km from route',
+          },
+          mobileNav: {
+            route: 'Route',
+            filters: 'Filters',
+            places: 'Places',
+          },
+          mobile: {
+            useMyLocation: 'My location',
+            locating: 'Locating...',
           },
           categories: {
             attraction: 'Attraction',
@@ -265,6 +283,15 @@ i18n
             selectCategories: 'Выберите категории в фильтре выше.',
             kmFromRoute: '{{distance}} км от маршрута',
           },
+          mobileNav: {
+            route: 'Маршрут',
+            filters: 'Фильтры',
+            places: 'Места',
+          },
+          mobile: {
+            useMyLocation: 'Моё местоположение',
+            locating: 'Определение...',
+          },
           categories: {
             attraction: 'Достопримечательность',
             museum: 'Музей',
@@ -357,6 +384,15 @@ i18n
             noPlaces: 'Місця не знайдено',
             selectCategories: 'Виберіть категорії у фільтрі вище.',
             kmFromRoute: '{{distance}} км від маршруту',
+          },
+          mobileNav: {
+            route: 'Маршрут',
+            filters: 'Фільтри',
+            places: 'Місця',
+          },
+          mobile: {
+            useMyLocation: 'Моє місцезнаходження',
+            locating: 'Визначення...',
           },
           categories: {
             attraction: 'Визначне місце',
