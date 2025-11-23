@@ -58,6 +58,32 @@ const formatAddress = (tags = {}) => {
   return parts.join(", ");
 };
 
+const PoiImage = ({ imageUrl, alt }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  if (!imageUrl) return null;
+
+  return (
+    <div
+      className={`${
+        isLoaded ? "block" : "hidden"
+      } w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative shadow-inner`}
+    >
+      <img
+        src={imageUrl}
+        alt={alt}
+        loading="lazy"
+        className="w-full h-full object-cover"
+        onLoad={() => setIsLoaded(true)}
+        onError={(e) => {
+          // Ensure it stays hidden if error occurs after load (unlikely but possible) or just doesn't load
+          e.currentTarget.style.display = "none";
+        }}
+      />
+    </div>
+  );
+};
+
 const PoiList = ({
   pois,
   startPoint,
@@ -263,32 +289,8 @@ const PoiList = ({
             >
               <div className="flex gap-3">
                 {/* Image Placeholder or Real Image */}
-                <div
-                  className={` ${
-                    poi.tags?.image ? "block" : "hidden"
-                  } w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative shadow-inner`}
-                >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={poi.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        const fallback = e.currentTarget.nextSibling;
-                        if (fallback) fallback.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className={`absolute inset-0 ${
-                      imageUrl ? "hidden" : "flex"
-                    } items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 text-slate-400 font-semibold text-lg`}
-                  >
-                    <span className="text-2xl">🖼️</span>
-                  </div>
-                </div>
+                {/* Image Placeholder or Real Image */}
+                <PoiImage imageUrl={imageUrl} alt={poi.name} />
 
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex justify-between items-start gap-2">
