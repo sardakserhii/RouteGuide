@@ -130,7 +130,8 @@ function MobileFilterSheet({ routeLogic, onComplete, onBack }) {
                 {/* Header */}
                 {/* <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                     <button
-                        onClick={onBack}
+                        onClick={onB
+                        ack}
                         className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition"
                         aria-label="Back to tabs"
                     >

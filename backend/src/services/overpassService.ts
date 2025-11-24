@@ -186,7 +186,7 @@ export class OverpassService {
       (
         ${categoryQueries.join("\n        ")}
       );
-      out body;
+      out center;
     `;
 
     // Use retry logic for the request with endpoint rotation
