@@ -121,7 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { bbox, route, categories, maxDeviation, limit } = req.body;
+        const { bbox, route, filters } = req.body;
 
         if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) {
             res.status(400).json({
@@ -129,6 +129,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
             return;
         }
+
+        // Extract parameters from filters object or use defaults
+        const categories = filters?.categories || [];
+        const maxDeviation = filters?.maxDistance || null;
+        const limit = filters?.limit || 100;
 
         // Fetch POIs using Overpass API
         const [minLat, maxLat, minLng, maxLng] = bbox;
@@ -252,7 +257,27 @@ out center;
             return 0;
         });
 
-        res.status(200).json({ pois: pois.slice(0, limit || 100) });
+        // Apply limit
+        const totalFiltered = pois.length;
+        const limitedPois = pois.slice(0, limit);
+
+        // Return response with metadata for frontend compatibility
+        res.status(200).json({
+            pois: limitedPois,
+            metadata: {
+                total: totalFiltered,
+                filtered: limitedPois.length,
+                truncated: totalFiltered > limit,
+                filtersApplied: {
+                    categories,
+                    maxDistance: maxDeviation,
+                    limit,
+                    useAi: false,
+                    aiApplied: false,
+                    useTileCache: false,
+                },
+            },
+        });
     } catch (error: any) {
         console.error("POI API error:", error);
         res.status(500).json({ error: "Failed to fetch POIs" });
