@@ -30,15 +30,23 @@ export class PostgresAdapter implements DatabaseAdapter {
     const tags = poi.tags; // pg handles object to JSONB automatically
     const now = new Date().toISOString();
 
-    await this.pool.query(query, [
-      id,
-      poi.type,
-      poi.id,
-      poi.lat,
-      poi.lon,
-      tags,
-      now,
-    ]);
+    try {
+      await this.pool.query(query, [
+        id,
+        poi.type,
+        poi.id,
+        poi.lat,
+        poi.lon,
+        tags,
+        now,
+      ]);
+    } catch (error: any) {
+      console.error(
+        `[PostgresAdapter] Error upserting POI ${id}:`,
+        error.message
+      );
+      throw error;
+    }
   }
 
   async getPoiById(id: string): Promise<Poi | null> {
@@ -71,15 +79,23 @@ export class PostgresAdapter implements DatabaseAdapter {
     `;
 
     const now = new Date().toISOString();
-    await this.pool.query(query, [
-      tile.id,
-      tile.minLat,
-      tile.maxLat,
-      tile.minLon,
-      tile.maxLon,
-      filtersHash,
-      now,
-    ]);
+    try {
+      await this.pool.query(query, [
+        tile.id,
+        tile.minLat,
+        tile.maxLat,
+        tile.minLon,
+        tile.maxLon,
+        filtersHash,
+        now,
+      ]);
+    } catch (error: any) {
+      console.error(
+        `[PostgresAdapter] Error upserting tile ${tile.id}:`,
+        error.message
+      );
+      throw error;
+    }
   }
 
   async isTileFresh(
@@ -108,7 +124,15 @@ export class PostgresAdapter implements DatabaseAdapter {
       VALUES ($1, $2, $3)
       ON CONFLICT DO NOTHING
     `;
-    await this.pool.query(query, [tileId, filtersHash, poiId]);
+    try {
+      await this.pool.query(query, [tileId, filtersHash, poiId]);
+    } catch (error: any) {
+      console.error(
+        `[PostgresAdapter] Error linking POI ${poiId} to tile ${tileId}:`,
+        error.message
+      );
+      throw error;
+    }
   }
 
   async getPoisForTile(tileId: string, filtersHash: string): Promise<string[]> {
