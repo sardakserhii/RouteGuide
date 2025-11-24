@@ -14,8 +14,8 @@ import {
   getNumberedCategoryIcon,
 } from "../../utils/categoryIcons";
 import RoutePanel from "../RoutePanel/RoutePanel";
-import PoiFilter from "../PoiFilter/PoiFilter";
-import PoiList from "../PoiList/PoiList";
+import PoiFilter from "../../features/poi-filter/ui/PoiFilter";
+import PoiList from "../../features/poi-list/ui/PoiList";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileBottomSheet from "../mobile/MobileBottomSheet";
 import { useRouteLogic } from "../../hooks/useRouteLogic";
