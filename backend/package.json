@@ -1,31 +1,32 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node src/index.ts",
-    "preload-pois": "ts-node scripts/preload-pois.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@fastify/cors": "^11.1.0",
-    "@google/generative-ai": "^0.24.1",
-    "axios": "^1.13.2",
-    "better-sqlite3": "^11.10.0",
-    "dotenv": "^17.2.3",
-    "fastify": "^5.6.2",
-    "pg": "^8.16.3"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^24.10.1",
-    "@types/pg": "^8.15.6",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  }
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "ts-node src/index.ts",
+        "preload-pois": "ts-node scripts/preload-pois.ts",
+        "migrate:postgres": "ts-node scripts/migrate-to-postgres.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "dependencies": {
+        "@fastify/cors": "^11.1.0",
+        "@google/generative-ai": "^0.24.1",
+        "axios": "^1.13.2",
+        "better-sqlite3": "^11.10.0",
+        "dotenv": "^17.2.3",
+        "fastify": "^5.6.2",
+        "pg": "^8.16.3"
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "^7.6.13",
+        "@types/node": "^24.10.1",
+        "@types/pg": "^8.15.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
+    }
 }

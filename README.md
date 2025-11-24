@@ -4,26 +4,33 @@
 
 ## ✨ Основные возможности
 
-- 📍 **Построение маршрутов** — введите начальную и конечную точки для расчета оптимального пути
-- 🎯 **Точки интереса (POI)** — автоматический поиск достопримечательностей, кафе, музеев и других интересных мест вдоль маршрута
-- 🗺️ **Интерактивная карта** — визуализация маршрута и POI с использованием Leaflet
-- 📱 **Современный интерфейс** — отзывчивый дизайн на React
+-   📍 **Построение маршрутов** — введите начальную и конечную точки для расчета оптимального пути
+-   🎯 **Точки интереса (POI)** — автоматический поиск достопримечательностей, кафе, музеев и других интересных мест вдоль маршрута
+-   🗺️ **Интерактивная карта** — визуализация маршрута и POI с использованием Leaflet
+-   📱 **Современный интерфейс** — отзывчивый дизайн на React
 
 ## 🛠️ Технологии
 
 ### Frontend
 
-- **React** — UI библиотека
-- **Vite** — быстрая сборка и разработка
-- **Leaflet** — интерактивные карты
-- **React-Leaflet** — интеграция Leaflet с React
+-   **React** — UI библиотека
+-   **Vite** — быстрая сборка и разработка
+-   **Leaflet** — интерактивные карты
+-   **React-Leaflet** — интеграция Leaflet с React
 
 ### Backend
 
-- **Node.js** + **TypeScript** — серверная логика
-- **Fastify** — быстрый веб-фреймворк
-- **OSRM API** — расчет маршрутов
-- **Overpass API** — получение данных о точках интереса из OpenStreetMap
+-   **Node.js** + **TypeScript** — серверная логика
+-   **Fastify** — быстрый веб-фреймворк
+-   **OSRM API** — расчет маршрутов
+-   **Overpass API** — получение данных о точках интереса из OpenStreetMap
+-   **Supabase PostgreSQL / SQLite** — кеширование POI данных
+
+### База данных
+
+По умолчанию используется **SQLite** для локального хранения. Для production рекомендуется **Supabase PostgreSQL**.
+
+📖 [Инструкция по миграции на Supabase](./docs/supabase-migration.md)
 
 ## 🚀 Быстрый старт
 
@@ -67,15 +74,15 @@ routeguide/
 
 ## 📝 API Endpoints
 
-- `POST /api/route` — расчет маршрута между двумя точками
-- `POST /api/pois` — поиск точек интереса вдоль маршрута
+-   `POST /api/route` — расчет маршрута между двумя точками
+-   `POST /api/pois` — поиск точек интереса вдоль маршрута
 
 ## 🤝 Разработка
 
 Проект использует:
 
-- ESLint для проверки кода
-- Hot Module Replacement (HMR) для быстрой разработки
+-   ESLint для проверки кода
+-   Hot Module Replacement (HMR) для быстрой разработки
 
 ## 📄 Лицензия
 
@@ -83,9 +90,9 @@ MIT
 
 ## Export to Google Maps
 
-- Build a route, use the POI list checkboxes to choose stops, and click **Open in Google Maps**.
-- The exported link opens origin -> selected POIs (up to 23) -> destination in a new tab.
-- Google Maps limits routes to 25 total points (origin + destination + 23 waypoints); extra selections are ignored.
+-   Build a route, use the POI list checkboxes to choose stops, and click **Open in Google Maps**.
+-   The exported link opens origin -> selected POIs (up to 23) -> destination in a new tab.
+-   Google Maps limits routes to 25 total points (origin + destination + 23 waypoints); extra selections are ignored.
 
 ---
 
@@ -95,26 +102,33 @@ MIT
 
 ## ✨ Key Features
 
-- 📍 **Route Planning** — enter start and end points to calculate the optimal path
-- 🎯 **Points of Interest (POI)** — automatic discovery of attractions, cafes, museums, and other interesting places along your route
-- 🗺️ **Interactive Map** — route and POI visualization using Leaflet
-- 📱 **Modern Interface** — responsive design built with React
+-   📍 **Route Planning** — enter start and end points to calculate the optimal path
+-   🎯 **Points of Interest (POI)** — automatic discovery of attractions, cafes, museums, and other interesting places along your route
+-   🗺️ **Interactive Map** — route and POI visualization using Leaflet
+-   📱 **Modern Interface** — responsive design built with React
 
 ## 🛠️ Tech Stack
 
 ### Frontend
 
-- **React** — UI library
-- **Vite** — fast build and development
-- **Leaflet** — interactive maps
-- **React-Leaflet** — Leaflet integration with React
+-   **React** — UI library
+-   **Vite** — fast build and development
+-   **Leaflet** — interactive maps
+-   **React-Leaflet** — Leaflet integration with React
 
 ### Backend
 
-- **Node.js** + **TypeScript** — server-side logic
-- **Fastify** — fast web framework
-- **OSRM API** — route calculation
-- **Overpass API** — fetching POI data from OpenStreetMap
+-   **Node.js** + **TypeScript** — server-side logic
+-   **Fastify** — fast web framework
+-   **OSRM API** — route calculation
+-   **Overpass API** — fetching POI data from OpenStreetMap
+-   **Supabase PostgreSQL / SQLite** — POI data caching
+
+### Database
+
+By default, **SQLite** is used for local storage. For production, **Supabase PostgreSQL** is recommended.
+
+📖 [Migration Guide to Supabase](./docs/supabase-migration.md)
 
 ## 🚀 Quick Start
 
@@ -158,15 +172,15 @@ routeguide/
 
 ## 📝 API Endpoints
 
-- `POST /api/route` — calculate route between two points
-- `POST /api/pois` — find points of interest along the route
+-   `POST /api/route` — calculate route between two points
+-   `POST /api/pois` — find points of interest along the route
 
 ## 🤝 Development
 
 The project uses:
 
-- ESLint for code linting
-- Hot Module Replacement (HMR) for fast development
+-   ESLint for code linting
+-   Hot Module Replacement (HMR) for fast development
 
 ## 📄 License
 
