@@ -1,4 +1,3 @@
-import { FastifyRequest, FastifyReply } from "fastify";
 import { OverpassService } from "../services/overpassService";
 import { GeminiService } from "../services/geminiService";
 import { TilePoisService } from "../services/tilePoisService";
@@ -96,16 +95,11 @@ export class PoiController {
     return stratified.slice(0, limit);
   }
 
-  async getPois(
-    request: FastifyRequest<{ Body: PoisQuery }>,
-    reply: FastifyReply
-  ) {
-    const { bbox, route, filters = {} } = request.body;
+  async getPois(body: PoisQuery) {
+    const { bbox, route, filters = {} } = body;
 
     if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) {
-      return reply
-        .code(400)
-        .send({ error: "Missing or invalid bbox parameter" });
+      throw new Error("Missing or invalid bbox parameter");
     }
 
     // Extract filter parameters with defaults
@@ -349,8 +343,8 @@ export class PoiController {
         },
       };
     } catch (error: any) {
-      request.log.error(error);
-      return reply.code(500).send({ error: "Failed to fetch POIs" });
+      console.error(error);
+      throw error;
     }
   }
 }

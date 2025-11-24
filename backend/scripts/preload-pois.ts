@@ -69,12 +69,12 @@ function generateTiles(bbox: {
 /**
  * Check if tile is already cached
  */
-function isTileCached(
+async function isTileCached(
   tilesRepo: TilesRepository,
   tileId: string,
   filtersHash: string
-): boolean {
-  const tile = tilesRepo.getTileById(tileId, filtersHash);
+): Promise<boolean> {
+  const tile = await tilesRepo.getTileById(tileId, filtersHash);
   return tile !== null;
 }
 
@@ -111,9 +111,12 @@ async function preloadRegion(regionKey: keyof typeof REGIONS) {
   const filtersHash = buildFiltersHash(CATEGORIES);
 
   // Filter out already cached tiles
-  const uncachedTiles = tiles.filter(
-    (tile) => !isTileCached(tilesRepo, tile.id, filtersHash)
-  );
+  const uncachedTiles: Tile[] = [];
+  for (const tile of tiles) {
+    if (!(await isTileCached(tilesRepo, tile.id, filtersHash))) {
+      uncachedTiles.push(tile);
+    }
+  }
   console.log(
     `✅ Already cached: ${tiles.length - uncachedTiles.length} tiles`
   );
@@ -160,13 +163,13 @@ async function preloadRegion(regionKey: keyof typeof REGIONS) {
         );
 
         // Store in database
-        tilesRepo.upsertTile(tile, filtersHash);
-        tilesRepo.clearTilePois(tile.id, filtersHash);
+        await tilesRepo.upsertTile(tile, filtersHash);
+        await tilesRepo.clearTilePois(tile.id, filtersHash);
 
         for (const poi of pois) {
-          poisRepo.upsertPoi(poi);
+          await poisRepo.upsertPoi(poi);
           const poiId = `${poi.type}/${poi.id}`;
-          tilesRepo.linkPoiToTile(tile.id, poiId, filtersHash);
+          await tilesRepo.linkPoiToTile(tile.id, poiId, filtersHash);
         }
 
         console.log(`  ✓ ${tile.id}: ${pois.length} POIs cached`);

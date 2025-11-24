@@ -1,4 +1,3 @@
-import axios from "axios";
 import { CATEGORY_MAPPINGS, determineCategory } from "../config/categories";
 import { minDistanceToRoute } from "./geoService";
 
@@ -89,13 +88,17 @@ export class OverpassService {
         lastError = error;
 
         // Don't retry on non-retryable errors
-        if (
-          error.response &&
-          error.response.status !== 429 &&
-          error.response.status !== 503 &&
-          error.response.status !== 504
-        ) {
-          throw error;
+        if (error instanceof Error) {
+          const errorMessage = error.message.toLowerCase();
+          if (
+            !errorMessage.includes("429") &&
+            !errorMessage.includes("503") &&
+            !errorMessage.includes("504") &&
+            !errorMessage.includes("fetch") &&
+            !errorMessage.includes("network")
+          ) {
+            throw error;
+          }
         }
 
         // If this was the last attempt, throw
@@ -110,8 +113,10 @@ export class OverpassService {
 
         // Calculate exponential backoff delay
         const delay = this.retryDelayMs * Math.pow(2, attempt);
+        const statusInfo =
+          error instanceof Error ? error.message : "Unknown error";
         console.log(
-          `[OverpassService] Request failed (status ${error.response?.status}), retrying in ${delay}ms with different endpoint...`
+          `[OverpassService] Request failed (${statusInfo}), retrying in ${delay}ms with different endpoint...`
         );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -195,16 +200,20 @@ export class OverpassService {
         const params = new URLSearchParams();
         params.append("data", query);
 
-        const response = await axios.post(endpoint, params, {
+        const response = await fetch(endpoint, {
+          method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": "RouteGuide/1.0",
           },
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity,
+          body: params.toString(),
         });
 
-        const data = response.data;
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
         const elements: OverpassElement[] = data.elements || [];
 
         let pois = elements.map((el) => ({
@@ -259,12 +268,8 @@ export class OverpassService {
 
         return pois;
       } catch (error: any) {
-        console.error("Overpass API error:", error.message);
-        if (error.response) {
-          console.error("Overpass response status:", error.response.status);
-          console.error("Overpass response data:", error.response.data);
-        }
-        throw new Error("Failed to fetch POIs from Overpass");
+        console.error("Overpass API error:", error.message || error);
+        throw new Error(`Failed to fetch POIs from Overpass: ${error.message || "Unknown error"}`);
       }
     });
   }

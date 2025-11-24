@@ -34,11 +34,18 @@ export class TilePoisService {
     const allCategoriesHash = buildFiltersHash(allCategories);
 
     if (
-      this.tilesRepo.isTileFresh(tile.id, allCategoriesHash, options.ttlDays)
+      await this.tilesRepo.isTileFresh(
+        tile.id,
+        allCategoriesHash,
+        options.ttlDays
+      )
     ) {
       console.log(`[TilePoisService] Superset cache hit for tile ${tile.id}`);
-      const poiIds = this.tilesRepo.getPoisForTile(tile.id, allCategoriesHash);
-      const allPois = this.poisRepo.getPoisByIds(poiIds);
+      const poiIds = await this.tilesRepo.getPoisForTile(
+        tile.id,
+        allCategoriesHash
+      );
+      const allPois = await this.poisRepo.getPoisByIds(poiIds);
 
       // Filter in memory
       const filteredPois = allPois.filter((poi) =>
@@ -53,10 +60,12 @@ export class TilePoisService {
     const tileKey = `${tile.id}_${filtersHash}`;
 
     // Check if tile is cached and fresh
-    if (this.tilesRepo.isTileFresh(tile.id, filtersHash, options.ttlDays)) {
+    if (
+      await this.tilesRepo.isTileFresh(tile.id, filtersHash, options.ttlDays)
+    ) {
       console.log(`[TilePoisService] Cache hit for tile ${tileKey}`);
-      const poiIds = this.tilesRepo.getPoisForTile(tile.id, filtersHash);
-      const pois = this.poisRepo.getPoisByIds(poiIds);
+      const poiIds = await this.tilesRepo.getPoisForTile(tile.id, filtersHash);
+      const pois = await this.poisRepo.getPoisByIds(poiIds);
       return pois;
     }
 
@@ -82,16 +91,16 @@ export class TilePoisService {
       );
 
       // Update tile record
-      this.tilesRepo.upsertTile(tile, filtersHash);
+      await this.tilesRepo.upsertTile(tile, filtersHash);
 
       // Clear old POI links for this tile
-      this.tilesRepo.clearTilePois(tile.id, filtersHash);
+      await this.tilesRepo.clearTilePois(tile.id, filtersHash);
 
       // Store POIs and link to tile
       for (const poi of pois) {
-        this.poisRepo.upsertPoi(poi);
+        await this.poisRepo.upsertPoi(poi);
         const poiId = `${poi.type}/${poi.id}`;
-        this.tilesRepo.linkPoiToTile(tile.id, poiId, filtersHash);
+        await this.tilesRepo.linkPoiToTile(tile.id, poiId, filtersHash);
       }
 
       console.log(
@@ -105,12 +114,12 @@ export class TilePoisService {
       );
 
       // Try to return stale cache if available
-      const poiIds = this.tilesRepo.getPoisForTile(tile.id, filtersHash);
+      const poiIds = await this.tilesRepo.getPoisForTile(tile.id, filtersHash);
       if (poiIds.length > 0) {
         console.log(
           `[TilePoisService] Returning stale cache for tile ${tileKey}`
         );
-        return this.poisRepo.getPoisByIds(poiIds);
+        return await this.poisRepo.getPoisByIds(poiIds);
       }
 
       throw error;
@@ -135,7 +144,7 @@ export class TilePoisService {
     const missingTiles: Tile[] = [];
 
     // 1. Check "all categories" cache (superset)
-    const supersetTiles = this.tilesRepo.getTilesByIds(
+    const supersetTiles = await this.tilesRepo.getTilesByIds(
       tileIds,
       allCategoriesHash
     );
@@ -156,7 +165,7 @@ export class TilePoisService {
     let freshSpecificTiles: any[] = [];
 
     if (remainingTileIds.length > 0) {
-      const specificTiles = this.tilesRepo.getTilesByIds(
+      const specificTiles = await this.tilesRepo.getTilesByIds(
         remainingTileIds,
         filtersHash
       );
@@ -173,7 +182,7 @@ export class TilePoisService {
     // 3. Collect POI IDs
     // For superset tiles
     if (freshSupersetTiles.length > 0) {
-      const links = this.tilesRepo.getAllPoisForTiles(
+      const links = await this.tilesRepo.getAllPoisForTiles(
         freshSupersetTiles.map((t) => t.id),
         allCategoriesHash
       );
@@ -187,7 +196,7 @@ export class TilePoisService {
         // A POI can be in multiple tiles.
         // We should deduplicate IDs before querying POIs repo to be safe and efficient.
         const uniquePoiIds = Array.from(new Set(poiIds));
-        const pois = this.poisRepo.getPoisByIds(uniquePoiIds);
+        const pois = await this.poisRepo.getPoisByIds(uniquePoiIds);
 
         // Filter in memory
         const filtered = pois.filter((p) =>
@@ -199,14 +208,14 @@ export class TilePoisService {
 
     // For specific tiles
     if (freshSpecificTiles.length > 0) {
-      const links = this.tilesRepo.getAllPoisForTiles(
+      const links = await this.tilesRepo.getAllPoisForTiles(
         freshSpecificTiles.map((t: any) => t.id),
         filtersHash
       );
       const poiIds = links.map((l) => l.poi_id);
       if (poiIds.length > 0) {
         const uniquePoiIds = Array.from(new Set(poiIds));
-        const pois = this.poisRepo.getPoisByIds(uniquePoiIds);
+        const pois = await this.poisRepo.getPoisByIds(uniquePoiIds);
         cachedPois.push(...pois);
       }
     }

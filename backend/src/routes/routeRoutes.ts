@@ -1,5 +1,4 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import axios from 'axios';
 
 interface RouteQuery {
   from: string; // "lat,lng"
@@ -25,8 +24,15 @@ export default async function routeRoutes(fastify: FastifyInstance) {
     const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson`;
 
     try {
-      const response = await axios.get(osrmUrl);
-      const route = response.data.routes[0];
+      const response = await fetch(osrmUrl);
+      
+      if (!response.ok) {
+        fastify.log.error(`OSRM API error: ${response.status} ${response.statusText}`);
+        return reply.code(502).send({ error: 'Failed to fetch route from OSRM' });
+      }
+
+      const data = await response.json();
+      const route = data.routes?.[0];
       
       if (!route) {
           return reply.code(404).send({ error: 'No route found' });
