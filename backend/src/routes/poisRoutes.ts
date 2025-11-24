@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PoiController } from "../controllers/poiController";
+import { PoiController } from "../controllers/poiController.js";
 
 export default async function poisRoutes(fastify: FastifyInstance) {
   const poiController = new PoiController();

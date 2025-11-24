@@ -1,6 +1,6 @@
-import { DatabaseAdapter } from "./adapter";
-import { PostgresAdapter } from "./postgresAdapter";
-import { SqliteAdapter } from "./sqliteAdapter";
+import { DatabaseAdapter } from "./adapter.js";
+import { PostgresAdapter } from "./postgresAdapter.js";
+import { SqliteAdapter } from "./sqliteAdapter.js";
 import dotenv from "dotenv";
 
 dotenv.config();

@@ -1,8 +1,8 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import routeRoutes from "./routes/routeRoutes";
-import poisRoutes from "./routes/poisRoutes";
-import "./db/database"; // Initialize database on startup
+import routeRoutes from "./routes/routeRoutes.js";
+import poisRoutes from "./routes/poisRoutes.js";
+import "./db/database.js"; // Initialize database on startup
 
 const server = Fastify({
   logger: true,

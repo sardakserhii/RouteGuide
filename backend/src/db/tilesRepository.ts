@@ -1,6 +1,6 @@
-import db from "./database";
-import { Tile } from "../utils/tiles";
-import { DbTile } from "./types";
+import db from "./database.js";
+import { Tile } from "../utils/tiles.js";
+import { DbTile } from "./types.js";
 
 export class TilesRepository {
   async getTileById(id: string, filtersHash: string): Promise<DbTile | null> {

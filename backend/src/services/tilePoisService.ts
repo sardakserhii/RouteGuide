@@ -1,9 +1,9 @@
-import { Tile } from "../utils/tiles";
-import { Poi, OverpassService } from "./overpassService";
-import { PoisRepository } from "../db/poisRepository";
-import { TilesRepository } from "../db/tilesRepository";
-import { buildFiltersHash } from "../utils/filtersHash";
-import { CATEGORY_MAPPINGS } from "../config/categories";
+import { Tile } from "../utils/tiles.js";
+import { Poi, OverpassService } from "./overpassService.js";
+import { PoisRepository } from "../db/poisRepository.js";
+import { TilesRepository } from "../db/tilesRepository.js";
+import { buildFiltersHash } from "../utils/filtersHash.js";
+import { CATEGORY_MAPPINGS } from "../config/categories.js";
 
 export interface PoiFilters {
   categories: string[];

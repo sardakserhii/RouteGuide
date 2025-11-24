@@ -1,5 +1,5 @@
-import db from "./database";
-import { Poi } from "../services/overpassService";
+import db from "./database.js";
+import { Poi } from "../services/overpassService.js";
 
 export class PoisRepository {
   async upsertPoi(poi: Poi): Promise<void> {

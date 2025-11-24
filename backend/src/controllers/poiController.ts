@@ -1,10 +1,13 @@
-import { OverpassService } from "../services/overpassService";
-import { GeminiService } from "../services/geminiService";
-import { TilePoisService } from "../services/tilePoisService";
-import { haversineDistance, minDistanceToRoute } from "../services/geoService";
-import { getTilesForRoute, Tile } from "../utils/tiles";
-import { Poi } from "../services/overpassService";
-import { interleaveCategories } from "../utils/poiUtils";
+import { OverpassService } from "../services/overpassService.js";
+import { GeminiService } from "../services/geminiService.js";
+import { TilePoisService } from "../services/tilePoisService.js";
+import {
+  haversineDistance,
+  minDistanceToRoute,
+} from "../services/geoService.js";
+import { getTilesForRoute, Tile } from "../utils/tiles.js";
+import { Poi } from "../services/overpassService.js";
+import { interleaveCategories } from "../utils/poiUtils.js";
 
 interface PoisQuery {
   bbox: number[]; // [minLat, maxLat, minLng, maxLng]

@@ -1,6 +1,6 @@
-import { Poi } from "../services/overpassService";
-import { Tile } from "../utils/tiles";
-import { DbPoi, DbTile } from "./types";
+import { Poi } from "../services/overpassService.js";
+import { Tile } from "../utils/tiles.js";
+import { DbPoi, DbTile } from "./types.js";
 
 export interface DatabaseAdapter {
   // POI operations

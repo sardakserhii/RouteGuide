@@ -1,9 +1,9 @@
 import { Pool } from "pg";
-import { DatabaseAdapter } from "./adapter";
-import { Poi } from "../services/overpassService";
-import { Tile } from "../utils/tiles";
-import { DbPoi, DbTile } from "./types";
-import { determineCategory } from "../config/categories";
+import { DatabaseAdapter } from "./adapter.js";
+import { Poi } from "../services/overpassService.js";
+import { Tile } from "../utils/tiles.js";
+import { DbPoi, DbTile } from "./types.js";
+import { determineCategory } from "../config/categories.js";
 
 export class PostgresAdapter implements DatabaseAdapter {
   private pool: Pool;

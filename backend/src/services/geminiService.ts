@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Poi } from "./overpassService";
-import { haversineDistance } from "./geoService";
+import { Poi } from "./overpassService.js";
+import { haversineDistance } from "./geoService.js";
 // import api key from .env
 import dotenv from "dotenv";
 dotenv.config();

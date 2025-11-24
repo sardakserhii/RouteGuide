@@ -1,4 +1,4 @@
-import { Poi } from "../services/overpassService";
+import { Poi } from "../services/overpassService.js";
 
 /**
  * Interleaves POIs from different categories to ensure diversity.
