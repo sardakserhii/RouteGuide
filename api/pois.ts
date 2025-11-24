@@ -121,7 +121,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { bbox, route, filters } = req.body;
+        // Support both formats: direct fields and filters object
+        const {
+            bbox,
+            route,
+            filters,
+            categories: directCategories,
+            maxDeviation: directMaxDeviation,
+            limit: directLimit,
+        } = req.body;
 
         if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) {
             res.status(400).json({
@@ -130,10 +138,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return;
         }
 
-        // Extract parameters from filters object or use defaults
-        const categories = filters?.categories || [];
-        const maxDeviation = filters?.maxDistance || null;
-        const limit = filters?.limit || 100;
+        // Extract parameters from filters object or use direct fields (backward compatibility)
+        const categories = filters?.categories || directCategories || [];
+        const maxDeviation = filters?.maxDistance || directMaxDeviation || null;
+        const limit = filters?.limit || directLimit || 100;
 
         // Fetch POIs using Overpass API
         const [minLat, maxLat, minLng, maxLng] = bbox;
