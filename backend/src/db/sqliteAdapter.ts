@@ -1,4 +1,3 @@
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import { DatabaseAdapter } from "./adapter";
@@ -8,7 +7,7 @@ import { DbPoi, DbTile } from "./types";
 import { determineCategory } from "../config/categories";
 
 export class SqliteAdapter implements DatabaseAdapter {
-  private db: Database.Database;
+  private db: any;
 
   constructor() {
     const DB_DIR = path.join(process.cwd(), "data");
@@ -18,6 +17,8 @@ export class SqliteAdapter implements DatabaseAdapter {
       fs.mkdirSync(DB_DIR, { recursive: true });
     }
 
+    // Dynamic require to avoid bundling better-sqlite3 when not used (e.g. in Vercel/Postgres)
+    const Database = require("better-sqlite3");
     this.db = new Database(DB_PATH);
     this.db.pragma("journal_mode = WAL");
     this.initSchema();
