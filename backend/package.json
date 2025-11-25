@@ -5,9 +5,9 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "ts-node src/index.ts",
-        "preload-pois": "ts-node scripts/preload-pois.ts",
-        "migrate:postgres": "ts-node scripts/migrate-to-postgres.ts"
+        "dev": "node --loader ts-node/esm src/index.ts",
+        "preload-pois": "node --loader ts-node/esm scripts/preload-pois.ts",
+        "migrate:postgres": "node --loader ts-node/esm scripts/migrate-to-postgres.ts"
     },
     "keywords": [],
     "author": "",
