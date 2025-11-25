@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { PoiController } from "../backend/src/controllers/poiController.js";
+import { PoiController } from "../backend/dist/controllers/poiController.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
