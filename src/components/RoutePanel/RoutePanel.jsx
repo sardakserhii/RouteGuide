@@ -11,20 +11,18 @@ function RoutePanel({
     onClear,
     onBuildRoute,
     routeBuilt,
+    isExpanded,
+    onExpandedChange,
 }) {
     const { t } = useTranslation();
     const [startLocationName, setStartLocationName] = useState(null);
     const [endLocationName, setEndLocationName] = useState(null);
     const [geocodingStart, setGeocodingStart] = useState(false);
     const [geocodingEnd, setGeocodingEnd] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(true);
 
-    // Auto-collapse when route is built
-    useEffect(() => {
-        if (routeBuilt) {
-            setIsExpanded(false);
-        }
-    }, [routeBuilt]);
+    const handleToggleExpanded = () => {
+        onExpandedChange?.(!isExpanded);
+    };
 
     // Geocode start point when it changes
     useEffect(() => {
@@ -69,11 +67,11 @@ function RoutePanel({
     }, [endPoint]);
 
     return (
-        <div className="absolute top-5 left-5 z-[1000] bg-white rounded-xl shadow-xl min-w-80 font-sans overflow-hidden">
+        <div className="mt-5 ml-5 bg-white rounded-xl shadow-xl min-w-80 font-sans overflow-hidden">
             {/* Collapsible Header */}
             <div
                 className="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={handleToggleExpanded}
             >
                 <div>
                     <h2 className="m-0 text-lg font-semibold text-gray-800">

@@ -18,6 +18,8 @@ interface PoiFilterProps {
     totalCount: number;
     disabled?: boolean;
     onApply?: () => void;
+    isExpanded?: boolean;
+    onExpandedChange?: (expanded: boolean) => void;
 }
 
 const PoiFilter: React.FC<PoiFilterProps> = ({
@@ -32,10 +34,12 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
     totalCount,
     disabled,
     onApply,
+    isExpanded: isExpandedProp,
+    onExpandedChange,
 }) => {
     const {
-        isExpanded,
-        setIsExpanded,
+        isExpanded: isExpandedInternal,
+        setIsExpanded: setIsExpandedInternal,
         showAllCategories,
         setShowAllCategories,
         pendingCategories,
@@ -60,13 +64,28 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
         onApply,
     });
 
+    // Use controlled state if provided, otherwise use internal state
+    const isExpanded =
+        isExpandedProp !== undefined ? isExpandedProp : isExpandedInternal;
+    const setIsExpanded = (expanded: boolean) => {
+        if (onExpandedChange) {
+            onExpandedChange(expanded);
+        } else {
+            setIsExpandedInternal(expanded);
+        }
+    };
+
     const handleApplyAndCollapse = () => {
         handleApply();
         setIsExpanded(false);
     };
 
     return (
-        <div className="absolute top-[500px] left-5 z-[1000] bg-white rounded-xl shadow-xl min-w-80 max-w-[340px] font-sans transition-all duration-300 max-h-[calc(100vh-520px)] overflow-hidden flex flex-col">
+        <div
+            className={`mt-3 ml-5 bg-white rounded-xl shadow-xl min-w-80 max-w-[340px] font-sans transition-all duration-300 overflow-hidden flex flex-col ${
+                isExpanded ? "max-h-[calc(100vh-100px)]" : ""
+            }`}
+        >
             <PoiFilterHeader
                 isExpanded={isExpanded}
                 setIsExpanded={setIsExpanded}
