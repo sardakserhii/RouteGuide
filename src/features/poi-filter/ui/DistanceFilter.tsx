@@ -1,4 +1,5 @@
 import React from "react";
+import { CollapsibleSection } from "./CollapsibleSection";
 
 interface DistanceFilterProps {
     pendingMaxDistance: number | null;
@@ -11,19 +12,16 @@ export const DistanceFilter: React.FC<DistanceFilterProps> = ({
     setPendingMaxDistance,
     t,
 }) => {
-    return (
-        <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-medium text-gray-700">
-                    {t("poiFilter.distanceLabel")}
-                </label>
-                <span className="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                    {pendingMaxDistance
-                        ? `${pendingMaxDistance} km`
-                        : t("poiFilter.distanceAuto")}
-                </span>
-            </div>
+    const distanceLabel = pendingMaxDistance
+        ? `${pendingMaxDistance} km`
+        : t("poiFilter.distanceAuto");
 
+    return (
+        <CollapsibleSection
+            title={`${t("poiFilter.distanceLabel")} — ${distanceLabel}`}
+            icon="📍"
+            defaultExpanded={false}
+        >
             {/* Checkbox to enable/disable custom distance */}
             <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input
@@ -43,7 +41,7 @@ export const DistanceFilter: React.FC<DistanceFilterProps> = ({
                 </span>
             </label>
 
-            <div className="relative mb-5">
+            <div className="relative">
                 <input
                     type="range"
                     min="0.5"
@@ -62,6 +60,6 @@ export const DistanceFilter: React.FC<DistanceFilterProps> = ({
                     <span>+20 km</span>
                 </div>
             </div>
-        </div>
+        </CollapsibleSection>
     );
 };

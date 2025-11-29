@@ -60,8 +60,13 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
         onApply,
     });
 
+    const handleApplyAndCollapse = () => {
+        handleApply();
+        setIsExpanded(false);
+    };
+
     return (
-        <div className="absolute top-[500px] left-5 z-[1000]  bg-white rounded-xl shadow-xl min-w-80 font-sans transition-all duration-300">
+        <div className="absolute top-[500px] left-5 z-[1000] bg-white rounded-xl shadow-xl min-w-80 max-w-[340px] font-sans transition-all duration-300 max-h-[calc(100vh-520px)] overflow-hidden flex flex-col">
             <PoiFilterHeader
                 isExpanded={isExpanded}
                 setIsExpanded={setIsExpanded}
@@ -70,7 +75,7 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
             />
 
             {isExpanded && (
-                <div className="px-4 pt-2 text-xs text-gray-500">
+                <div className="px-4 pt-2 text-xs text-gray-500 flex-shrink-0">
                     {t("poiFilter.subtitle")}
                 </div>
             )}
@@ -78,7 +83,7 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
             {/* Content */}
             {isExpanded && (
                 <div
-                    className={`p-5 ${
+                    className={`p-4 overflow-y-auto flex-1 ${
                         disabled ? "opacity-50 pointer-events-none" : ""
                     }`}
                 >
@@ -105,11 +110,20 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
                         handleClearAll={handleClearAll}
                         t={t}
                     />
+                </div>
+            )}
 
+            {/* Fixed footer with apply button */}
+            {isExpanded && (
+                <div
+                    className={`px-4 pb-4 pt-2 border-t border-gray-100 flex-shrink-0 bg-white ${
+                        disabled ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                >
                     <div className="flex justify-end">
                         <button
-                            onClick={handleApply}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700`}
+                            onClick={handleApplyAndCollapse}
+                            className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700"
                         >
                             {t("poiFilter.showPlaces")}
                         </button>
@@ -117,7 +131,7 @@ const PoiFilter: React.FC<PoiFilterProps> = ({
 
                     {/* Status Footer */}
                     {totalCount > 0 && (
-                        <div className="pt-3 border-t border-gray-100 text-xs text-center text-gray-500">
+                        <div className="pt-2 text-xs text-center text-gray-500">
                             {t("poiFilter.showingPlaces", {
                                 count: poiCount,
                                 total: totalCount,

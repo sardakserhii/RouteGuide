@@ -12,12 +12,12 @@ export const AiFilter: React.FC<AiFilterProps> = ({
     t,
 }) => {
     return (
-        <div className="mb-6 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+        <div className="mb-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="text-lg">?</span>
+                    <span className="text-base">✨</span>
                     <div>
-                        <h4 className="text-sm font-semibold text-indigo-900">
+                        <h4 className="text-sm font-medium text-indigo-900">
                             {t("poiFilter.aiTitle")}
                         </h4>
                         <p className="text-xs text-indigo-600">
