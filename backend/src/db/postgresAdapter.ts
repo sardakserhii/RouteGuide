@@ -167,6 +167,80 @@ export class PostgresAdapter implements DatabaseAdapter {
     return res.rows as { tile_id: string; poi_id: string }[];
   }
 
+  /**
+   * Saves tile and links POIs in a single transaction.
+   * This ensures atomicity - if any operation fails, all are rolled back.
+   */
+  async saveTileWithPois(
+    tile: Tile,
+    filtersHash: string,
+    poiIds: string[]
+  ): Promise<void> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // 1. Upsert tile
+      const upsertTileQuery = `
+        INSERT INTO tiles (id, min_lat, max_lat, min_lon, max_lon, filters_hash, fetched_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT(id, filters_hash) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at
+      `;
+      const now = new Date().toISOString();
+      await client.query(upsertTileQuery, [
+        tile.id,
+        tile.minLat,
+        tile.maxLat,
+        tile.minLon,
+        tile.maxLon,
+        filtersHash,
+        now,
+      ]);
+
+      // 2. Clear old POI links for this tile
+      const clearQuery =
+        "DELETE FROM tile_pois WHERE tile_id = $1 AND filters_hash = $2";
+      await client.query(clearQuery, [tile.id, filtersHash]);
+
+      // 3. Link all POIs to tile in batch
+      if (poiIds.length > 0) {
+        // Build batch insert query for efficiency
+        const values: string[] = [];
+        const params: (string | number)[] = [];
+        let paramIndex = 1;
+
+        for (const poiId of poiIds) {
+          values.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2})`);
+          params.push(tile.id, filtersHash, poiId);
+          paramIndex += 3;
+        }
+
+        const linkQuery = `
+          INSERT INTO tile_pois (tile_id, filters_hash, poi_id)
+          VALUES ${values.join(", ")}
+          ON CONFLICT DO NOTHING
+        `;
+        await client.query(linkQuery, params);
+      }
+
+      await client.query("COMMIT");
+      console.log(
+        `[PostgresAdapter] Transaction committed: tile ${tile.id} with ${poiIds.length} POIs`
+      );
+    } catch (error: any) {
+      await client.query("ROLLBACK");
+      console.error(
+        `[PostgresAdapter] Transaction rolled back for tile ${tile.id}:`,
+        error.message
+      );
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   private dbPoiToPoi(row: DbPoi): Poi {
     const tags = typeof row.tags === "string" ? JSON.parse(row.tags) : row.tags;
     return {

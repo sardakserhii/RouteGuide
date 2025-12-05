@@ -24,7 +24,7 @@ export class TilesRepository {
     poiId: string,
     filtersHash: string
   ): Promise<void> {
-    await db.linkPoiToTile(tileId, filtersHash, poiId);
+    await db.linkPoiToTile(tileId, poiId, filtersHash);
   }
 
   async getPoisForTile(tileId: string, filtersHash: string): Promise<string[]> {
@@ -44,5 +44,27 @@ export class TilesRepository {
     filtersHash: string
   ): Promise<{ tile_id: string; poi_id: string }[]> {
     return await db.getAllPoisForTiles(tileIds, filtersHash);
+  }
+
+  /**
+   * Saves tile and links POIs atomically using a transaction if supported.
+   * Falls back to sequential operations if transaction not available.
+   */
+  async saveTileWithPois(
+    tile: Tile,
+    filtersHash: string,
+    poiIds: string[]
+  ): Promise<void> {
+    if (db.saveTileWithPois) {
+      // Use transaction-based method (PostgreSQL)
+      await db.saveTileWithPois(tile, filtersHash, poiIds);
+    } else {
+      // Fallback for SQLite or adapters without transaction support
+      await db.upsertTile(tile, filtersHash);
+      await db.clearTilePois(tile.id, filtersHash);
+      for (const poiId of poiIds) {
+        await db.linkPoiToTile(tile.id, poiId, filtersHash);
+      }
+    }
   }
 }

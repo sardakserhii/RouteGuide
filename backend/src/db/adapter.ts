@@ -28,4 +28,11 @@ export interface DatabaseAdapter {
     tileIds: string[],
     filtersHash: string
   ): Promise<{ tile_id: string; poi_id: string }[]>;
+
+  // Transaction-based method for atomic tile + POI operations
+  saveTileWithPois?(
+    tile: Tile,
+    filtersHash: string,
+    poiIds: string[]
+  ): Promise<void>;
 }

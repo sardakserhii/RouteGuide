@@ -100,18 +100,15 @@ export class TilePoisService {
                 1000 // High limit per tile
             );
 
-            // Update tile record
-            await this.tilesRepo.upsertTile(tile, filtersHash);
-
-            // Clear old POI links for this tile
-            await this.tilesRepo.clearTilePois(tile.id, filtersHash);
-
-            // Store POIs and link to tile
+            // First, upsert all POIs to ensure they exist
+            const poiIds: string[] = [];
             for (const poi of pois) {
                 await this.poisRepo.upsertPoi(poi);
-                const poiId = `${poi.type}/${poi.id}`;
-                await this.tilesRepo.linkPoiToTile(tile.id, poiId, filtersHash);
+                poiIds.push(`${poi.type}/${poi.id}`);
             }
+
+            // Then save tile and link POIs atomically
+            await this.tilesRepo.saveTileWithPois(tile, filtersHash, poiIds);
 
             console.log(
                 `[TilePoisService] Cached ${pois.length} POIs for tile ${tileKey}`
